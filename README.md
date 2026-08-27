@@ -1,48 +1,42 @@
 # Agent Zero Plugins
 
-Two independent [Agent Zero](https://github.com/agent0ai/agent-zero) plugins for `/a0/usr/plugins/`.
+<p align="center">
+  <img src="plugins/kurultai_people/docs/logo.webp" width="72" alt="Kurultai Memory" />
+  <img src="plugins/openrouter_usage/docs/logo.webp" width="72" alt="OpenRouter Usage" />
+</p>
 
-| Plugin | Purpose |
-|--------|---------|
-| `kurultai_people` | Search Kurultai for people and internal knowledge |
-| `openrouter_usage` | OpenRouter org spend dashboard (management key) |
+Two independent plugins for [Agent Zero](https://github.com/agent0ai/agent-zero) v2.8+.
 
-## Install
+| Plugin | One-liner |
+|--------|-----------|
+| [**Kurultai Memory**](plugins/kurultai_people/) | Search, recall, and cite your [Kurultai](https://github.com/duketopceo/kurultai) brain |
+| [**OpenRouter Usage**](plugins/openrouter_usage/) | Org spend widget + dashboard via management key |
 
-Copy each plugin folder into your Agent Zero persistent volume:
+## Quick install
 
 ```bash
 cp -r plugins/kurultai_people /a0/usr/plugins/
 cp -r plugins/openrouter_usage /a0/usr/plugins/
 ```
 
-Restart Agent Zero, open **Plugins**, enable each plugin, then configure in **Settings**.
+Restart → **Plugins** → enable both.
 
 ### Secrets (`/a0/usr/secrets.env`)
 
-| Key | Plugin | Required |
-|-----|--------|----------|
-| `KURULTAI_API_KEY` | kurultai_people | Optional (Bearer token when Kurultai requires auth) |
-| `OPENROUTER_MANAGEMENT_KEY` | openrouter_usage | Required for usage data |
-
-### kurultai_people
-
-Settings → **External**: set `kurultai_base_url` (e.g. `http://127.0.0.1:8421`).
-
-Optional: `kurultai_mcp_url` (e.g. `http://127.0.0.1:8421/mcp`) to prefer MCP over HTTP search.
-
-### openrouter_usage
-
-Settings → **Developer**: pick watched API keys, set aliases (`821713b8=luke`), refresh interval.
-
-## Plugin Index
-
-See `index/` for `agent0ai/a0-plugins` submission manifests (one repo per plugin at publish time).
-
-## Layout
-
+```env
+KURULTAI_API_KEY=...              # optional
+OPENROUTER_MANAGEMENT_KEY=...     # required for usage widget
 ```
-plugins/
-├── kurultai_people/
-└── openrouter_usage/
-```
+
+## Plugin Hub / Store
+
+Each plugin includes:
+
+- `docs/logo.webp` — store thumbnail & welcome card art
+- `index/<name>/index.yaml` — manifest for [agent0ai/a0-plugins](https://github.com/agent0ai/a0-plugins)
+- Discovery **feature cards** when not yet configured
+
+## Docs
+
+- [Kurultai Memory README](plugins/kurultai_people/README.md)
+- [OpenRouter Usage README](plugins/openrouter_usage/README.md)

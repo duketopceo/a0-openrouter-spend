@@ -1,7 +1,7 @@
 name: kurultai_people
-title: Kurultai People
-description: Search Kurultai for people, roles, teams, and indexed internal knowledge.
-version: 1.0.0
+title: Kurultai Memory
+description: Connect Agent Zero to your Kurultai brain — search, recall, and cite indexed knowledge with excerpts, not file dumps.
+version: 1.1.0
 settings_sections:
   - external
 per_project_config: false

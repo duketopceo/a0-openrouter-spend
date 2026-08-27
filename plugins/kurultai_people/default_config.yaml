@@ -1,6 +1,8 @@
 kurultai_base_url: ""
 kurultai_mcp_url: ""
+kurultai_project: ""
 timeout_seconds: 15
 max_results: 8
 snippet_max_chars: 400
 test_query: "Luke Duke"
+prefer_recall_for_memory: true

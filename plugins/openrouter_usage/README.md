@@ -1,29 +1,69 @@
+<p align="center">
+  <img src="docs/logo.webp" alt="OpenRouter Usage" width="120" />
+</p>
+
 # OpenRouter Usage
 
-Minimal OpenRouter org spend widget for Agent Zero.
+**Org spend at a glance — native to Agent Zero.**
+
+A minimal sidebar widget and detailed dashboard powered by your OpenRouter **management key**. Read-only. No extra dependencies.
+
+---
+
+## What you see
+
+| View | Shows |
+|------|-------|
+| **Widget** | 30-day spend, credit balance, top keys |
+| **Detailed** | Daily spend, per-key bars, top models, token table |
+
+Data path: `credits` + `keys` + per-key `activity` (when keys are watched).
+
+---
 
 ## Install
 
-1. Copy this folder to `/a0/usr/plugins/openrouter_usage/`
-2. Restart Agent Zero and enable the plugin
-3. Add `OPENROUTER_MANAGEMENT_KEY` to Agent Zero Secrets (org **management** key, not an inference key)
-4. Settings → **Developer** → fetch keys, select watched keys, set aliases
+```bash
+cp -r openrouter_usage /a0/usr/plugins/
+```
 
-## API (server-side only)
+Restart Agent Zero → **Plugins** → enable **OpenRouter Usage**.
 
-- `GET /v1/credits`
-- `GET /v1/keys`
-- `GET /v1/activity?api_key_hash=<prefix>` per watched key
+### 1. Secret (required)
 
-Overview is cached (default 5 minutes). Widget polls on the configured interval.
+`/a0/usr/secrets.env`
 
-## Manual test
+```env
+OPENROUTER_MANAGEMENT_KEY=sk-or-mgmt-...
+```
 
-- [ ] Missing management key → empty state copy in widget
-- [ ] With key → widget shows 30-day spend and credit balance
-- [ ] Detailed view charts and table populate
-- [ ] One key activity failure → partial data + `last_error`
-- [ ] Management key never appears in browser network responses
+> Use your org **management** key — not an inference key.
+
+### 2. Settings → Developer
+
+1. **Fetch keys** → check keys to watch (empty = aggregate activity only)
+2. Set aliases: `821713b8=luke,abc12345=helpdesk`
+3. Adjust refresh interval (default 5 min)
+
+---
+
+## Design
+
+- **Server-side only** — management key never reaches the browser
+- **TTL cache** — one compact JSON blob per refresh cycle
+- **Graceful degradation** — partial data if one key's activity fails
+- **Non-blocking** — widget shows stale/error state; Agent Zero still starts
+
+---
+
+## Manual checklist
+
+- [ ] Missing key → clear empty state
+- [ ] With key → widget shows spend + balance
+- [ ] Watched keys → per-key charts populate
+- [ ] Detailed view tables and bars render
+
+---
 
 ## License
 

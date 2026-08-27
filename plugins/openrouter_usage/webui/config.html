@@ -5,14 +5,19 @@
 </head>
 <body>
   <div x-data>
-    <div class="section-title">OpenRouter Usage</div>
-    <div class="section-description">
-      Org management key lives in Agent Zero Secrets as <code>OPENROUTER_MANAGEMENT_KEY</code> (read-only calls only).
+    <div class="hero">
+      <img src="/plugins/openrouter_usage/docs/logo.webp" alt="OpenRouter Usage" width="56" height="56" />
+      <div>
+        <div class="section-title">OpenRouter Usage</div>
+        <div class="section-description">Track org spend and per-key activity with your management key (read-only).</div>
+      </div>
     </div>
+
+    <p class="hint">Add <code>OPENROUTER_MANAGEMENT_KEY</code> to Agent Zero Secrets — never in this config file.</p>
 
     <label class="field">
       <span class="field-title">Watched key hashes</span>
-      <span class="field-description">Leave empty to include all keys in activity fetches.</span>
+      <span class="field-description">Empty = aggregate activity only (minimal API calls).</span>
       <div class="key-actions">
         <button type="button" class="btn" @click="$store.openrouterUsageStore.fetchKeys()">Fetch keys</button>
       </div>
@@ -60,11 +65,14 @@
   </div>
 
   <style>
+    .hero { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+    .hero img { border-radius: 12px; }
     .field { display: grid; gap: 6px; margin-top: 12px; }
     .field-grid { display: grid; gap: 12px; margin-top: 12px; }
     .field-title { font-weight: 700; font-size: 0.84rem; }
     .field-description { opacity: 0.8; font-size: 0.8rem; }
     .field.inline { grid-template-columns: auto 1fr; align-items: center; }
+    .hint { opacity: 0.8; font-size: 0.82rem; }
     .key-list { display: grid; gap: 6px; max-height: 220px; overflow: auto; margin-top: 8px; }
     .key-row { display: flex; gap: 8px; align-items: center; font-size: 0.85rem; }
     .badge { font-size: 0.72rem; opacity: 0.7; border: 1px solid currentColor; border-radius: 999px; padding: 0 6px; }

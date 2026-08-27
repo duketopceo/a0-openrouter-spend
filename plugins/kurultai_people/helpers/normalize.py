@@ -59,6 +59,41 @@ def normalize_who_knows(payload: Any) -> list[dict[str, Any]]:
     return rows
 
 
+def normalize_citation(payload: Any, max_chars: int) -> dict[str, Any] | None:
+    if payload is None:
+        return None
+    if isinstance(payload, dict):
+        if "atom" in payload and isinstance(payload["atom"], dict):
+            atom = payload["atom"]
+            return {
+                "title": str(atom.get("title") or "Untitled"),
+                "snippet": snippet_from_atom(atom, max_chars),
+                "source": str(atom.get("source") or payload.get("source") or ""),
+                "source_id": str(atom.get("source_id") or payload.get("source_id") or ""),
+            }
+        excerpt = payload.get("excerpt") or payload.get("snippet")
+        if isinstance(excerpt, str):
+            return {
+                "title": str(payload.get("title") or "Citation"),
+                "snippet": excerpt[:max_chars],
+                "source": str(payload.get("source") or ""),
+                "source_id": str(payload.get("source_id") or ""),
+            }
+    return None
+
+
+def format_citation_for_agent(citation: dict[str, Any] | None) -> str:
+    if not citation:
+        return "No citation found in Kurultai."
+    return "\n".join(
+        [
+            citation.get("title", "Citation"),
+            f"source: {citation.get('source', '')} / {citation.get('source_id', '')}",
+            citation.get("snippet", ""),
+        ]
+    )
+
+
 def format_hits_for_agent(hits: list[dict[str, Any]]) -> str:
     if not hits:
         return "No matches in Kurultai."

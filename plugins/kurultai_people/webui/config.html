@@ -1,14 +1,16 @@
 <html>
 <head>
-  <title>Kurultai People</title>
+  <title>Kurultai Memory</title>
   <script type="module" src="/plugins/kurultai_people/webui/kurultai-store.js"></script>
 </head>
 <body>
   <div x-data>
-    <div class="section-title">Kurultai</div>
-    <div class="section-description">
-      Point at a Kurultai daemon base URL. Optional API key goes in Agent Zero Secrets as
-      <code>KURULTAI_API_KEY</code>.
+    <div class="hero">
+      <img src="/plugins/kurultai_people/docs/logo.webp" alt="Kurultai Memory" width="56" height="56" />
+      <div>
+        <div class="section-title">Kurultai Memory</div>
+        <div class="section-description">Connect Agent Zero to your Kurultai brain — search, recall, and cite indexed knowledge.</div>
+      </div>
     </div>
 
     <div class="field-grid">
@@ -19,6 +21,10 @@
       <label class="field">
         <span class="field-title">MCP URL (optional)</span>
         <input x-model="config.kurultai_mcp_url" placeholder="http://127.0.0.1:8421/mcp" />
+      </label>
+      <label class="field">
+        <span class="field-title">Project namespace</span>
+        <input x-model="config.kurultai_project" placeholder="default (or KURULTAI_PROJECT)" />
       </label>
       <label class="field">
         <span class="field-title">Timeout (seconds)</span>
@@ -36,7 +42,13 @@
         <span class="field-title">Test query</span>
         <input x-model="config.test_query" />
       </label>
+      <label class="field inline">
+        <input type="checkbox" x-model="config.prefer_recall_for_memory" />
+        <span>Prefer project recall for memory-style queries</span>
+      </label>
     </div>
+
+    <p class="hint">Optional bearer token: add <code>KURULTAI_API_KEY</code> in Agent Zero Secrets.</p>
 
     <div class="actions-row">
       <button type="button" class="btn" @click="$store.kurultaiPeopleStore.testConnection()" :disabled="$store.kurultaiPeopleStore.testing">
@@ -46,9 +58,13 @@
   </div>
 
   <style>
+    .hero { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+    .hero img { border-radius: 12px; }
     .field-grid { display: grid; gap: 12px; margin-top: 12px; }
     .field { display: grid; gap: 6px; }
+    .field.inline { grid-template-columns: auto 1fr; align-items: center; }
     .field-title { font-weight: 700; font-size: 0.84rem; }
+    .hint { opacity: 0.8; font-size: 0.82rem; margin-top: 12px; }
     .actions-row { margin-top: 16px; display: flex; gap: 8px; }
   </style>
 </body>

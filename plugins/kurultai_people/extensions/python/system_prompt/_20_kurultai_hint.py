@@ -7,6 +7,7 @@ class KurultaiHint(Extension):
         if system_prompt is None:
             return
         system_prompt.append(
-            "For questions about people, roles, teams, or indexed internal documents, "
-            "call kurultai_search before guessing. Do not invent employee names or contact details."
+            "Kurultai is your indexed knowledge brain. For people, org, or internal-doc questions, "
+            "call kurultai_search before guessing. For project-scoped prior work, prefer kurultai_recall. "
+            "To pin one source, use kurultai_cite. Never invent employee names or contact details."
         )

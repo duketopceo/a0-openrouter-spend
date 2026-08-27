@@ -1,38 +1,91 @@
-# Kurultai People
+<p align="center">
+  <img src="docs/logo.webp" alt="Kurultai Memory" width="120" />
+</p>
 
-Agent Zero plugin for [Kurultai](https://github.com/duketopceo/kurultai) search — people, roles, and indexed knowledge.
+# Kurultai Memory
+
+**Connect Agent Zero to your [Kurultai](https://github.com/duketopceo/kurultai) brain.**
+
+Search, recall, and cite indexed knowledge with excerpt-sized results and source paths — never whole-file dumps into context.
+
+---
+
+## Why
+
+Kurultai indexes notes, chats, code, and connectors into one hybrid FTS + vector store. This plugin wires that brain into Agent Zero as first-class tools the agent can call when users ask about people, prior decisions, or internal docs.
+
+| Tool | When to use |
+|------|-------------|
+| `kurultai_search` | General hybrid search; auto-routes people & memory queries |
+| `kurultai_recall` | Project-scoped agent memory (`/api/recall`) |
+| `kurultai_cite` | One grounded excerpt when you know `source` + `source_id` |
+
+---
 
 ## Install
 
-1. Copy this folder to `/a0/usr/plugins/kurultai_people/`
-2. Restart Agent Zero and enable the plugin
-3. Settings → **External** → set `kurultai_base_url`
-4. Optional: add `KURULTAI_API_KEY` to Agent Zero Secrets (Bearer token)
+```bash
+cp -r kurultai_people /a0/usr/plugins/
+```
+
+Restart Agent Zero → **Plugins** → enable **Kurultai Memory**.
+
+### 1. Secrets (optional)
+
+`/a0/usr/secrets.env`
+
+```env
+KURULTAI_API_KEY=your-bearer-token
+```
+
+### 2. Settings → External
+
+| Field | Example |
+|-------|---------|
+| Base URL | `http://127.0.0.1:8421` |
+| MCP URL | `http://127.0.0.1:8421/mcp` (optional) |
+| Project | `default` or your `KURULTAI_PROJECT` |
+
+Click **Test connection**.
+
+---
 
 ## Kurultai daemon
-
-Run Kurultai with HTTP enabled:
 
 ```bash
 kurultai daemon --port 8421
 ```
 
-Plugin uses:
+HTTP routes used:
 
 - `GET/POST /api/search`
-- `POST /who_knows` (person-related queries)
-- Optional `POST /mcp` when `kurultai_mcp_url` is set
+- `POST /api/recall`
+- `POST /cite`
+- `POST /who_knows`
 
-## Agent tool
+---
 
-`kurultai_search` — args: `query`, optional `scope=people`, `source`, `limit`.
+## Agent tools
 
-## Manual test
+```json
+{
+  "tool_name": "kurultai_recall",
+  "tool_args": { "query": "what did we decide about openrouter keys" }
+}
+```
 
-- [ ] Settings test connection returns sample hits
-- [ ] Agent answers "who is …" using `kurultai_search`
-- [ ] Unreachable host shows toast error, not a stack trace
-- [ ] No API key in plugin config files
+Memory-style queries automatically prefer recall when **Prefer project recall** is enabled.
+
+---
+
+## Manual checklist
+
+- [ ] Test connection returns sample hits
+- [ ] `kurultai_search` answers a people question with citations
+- [ ] `kurultai_recall` returns project-scoped excerpts
+- [ ] No secrets committed to git
+
+---
 
 ## License
 

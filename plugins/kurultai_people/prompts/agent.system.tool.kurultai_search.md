@@ -1,17 +1,14 @@
 ## kurultai_search
-Use for org/people/internal-doc questions before guessing.
-- `kurultai_search`: args `query`, optional `scope` (`people`), optional `source`, optional `limit`
-- Returns excerpt-sized hits with source citations from Kurultai
+Hybrid search across the Kurultai brain. Returns excerpt-sized hits with citations — never full files.
+- `kurultai_search`: args `query`, optional `scope` (`people` | `memory`), optional `source`, optional `limit`
+- Prefer this for general knowledge and people lookups
 
 example:
 ~~~json
 {
-  "thoughts": ["I should search Kurultai for this person."],
+  "thoughts": ["Search the Kurultai brain for grounded context."],
   "headline": "Searching Kurultai",
   "tool_name": "kurultai_search",
-  "tool_args": {
-    "query": "Luke Duke role",
-    "scope": "people"
-  }
+  "tool_args": { "query": "database migration notes", "scope": "memory" }
 }
 ~~~
