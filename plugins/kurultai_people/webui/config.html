@@ -1,0 +1,55 @@
+<html>
+<head>
+  <title>Kurultai People</title>
+  <script type="module" src="/plugins/kurultai_people/webui/kurultai-store.js"></script>
+</head>
+<body>
+  <div x-data>
+    <div class="section-title">Kurultai</div>
+    <div class="section-description">
+      Point at a Kurultai daemon base URL. Optional API key goes in Agent Zero Secrets as
+      <code>KURULTAI_API_KEY</code>.
+    </div>
+
+    <div class="field-grid">
+      <label class="field">
+        <span class="field-title">Base URL</span>
+        <input x-model="config.kurultai_base_url" placeholder="http://127.0.0.1:8421" />
+      </label>
+      <label class="field">
+        <span class="field-title">MCP URL (optional)</span>
+        <input x-model="config.kurultai_mcp_url" placeholder="http://127.0.0.1:8421/mcp" />
+      </label>
+      <label class="field">
+        <span class="field-title">Timeout (seconds)</span>
+        <input type="number" min="3" x-model.number="config.timeout_seconds" />
+      </label>
+      <label class="field">
+        <span class="field-title">Max results</span>
+        <input type="number" min="1" max="50" x-model.number="config.max_results" />
+      </label>
+      <label class="field">
+        <span class="field-title">Snippet length</span>
+        <input type="number" min="80" max="2000" x-model.number="config.snippet_max_chars" />
+      </label>
+      <label class="field">
+        <span class="field-title">Test query</span>
+        <input x-model="config.test_query" />
+      </label>
+    </div>
+
+    <div class="actions-row">
+      <button type="button" class="btn" @click="$store.kurultaiPeopleStore.testConnection()" :disabled="$store.kurultaiPeopleStore.testing">
+        <span x-text="$store.kurultaiPeopleStore.testing ? 'Testing…' : 'Test connection'"></span>
+      </button>
+    </div>
+  </div>
+
+  <style>
+    .field-grid { display: grid; gap: 12px; margin-top: 12px; }
+    .field { display: grid; gap: 6px; }
+    .field-title { font-weight: 700; font-size: 0.84rem; }
+    .actions-row { margin-top: 16px; display: flex; gap: 8px; }
+  </style>
+</body>
+</html>

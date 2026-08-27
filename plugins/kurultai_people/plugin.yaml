@@ -1,0 +1,8 @@
+name: kurultai_people
+title: Kurultai People
+description: Search Kurultai for people, roles, teams, and indexed internal knowledge.
+version: 1.0.0
+settings_sections:
+  - external
+per_project_config: false
+per_agent_config: false

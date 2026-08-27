@@ -1,0 +1,25 @@
+<script type="module">
+  import { store } from "/plugins/openrouter_usage/webui/usage-store.js";
+</script>
+
+<div x-data>
+  <template x-if="$store.openrouterUsageStore">
+    <button type="button"
+            class="config-button or-usage-widget"
+            title="OpenRouter usage"
+            @click="openModal('/plugins/openrouter_usage/webui/usage-dashboard.html')">
+      <span class="or-usage-label" x-text="$store.openrouterUsageStore.loading ? 'OR…' : ($store.openrouterUsageStore.summaryLine || 'OpenRouter')"></span>
+    </button>
+  </template>
+</div>
+
+<style>
+  .or-usage-widget {
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.72rem;
+  }
+  .or-usage-label { pointer-events: none; }
+</style>

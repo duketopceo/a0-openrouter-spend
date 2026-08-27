@@ -1,0 +1,36 @@
+<html>
+<head>
+  <title>Search Kurultai</title>
+  <script type="module" src="/plugins/kurultai_people/webui/kurultai-store.js"></script>
+</head>
+<body>
+  <div x-data>
+    <template x-if="$store.kurultaiPeopleStore">
+      <div x-init="$store.kurultaiPeopleStore.onOpen()" x-destroy="$store.kurultaiPeopleStore.cleanup()">
+        <div class="section-title">Search Kurultai</div>
+        <div class="search-row">
+          <input type="text" x-model="$store.kurultaiPeopleStore.query" placeholder="Who is… / search notes" @keydown.enter="$store.kurultaiPeopleStore.runSearch()" />
+          <button type="button" class="btn" @click="$store.kurultaiPeopleStore.runSearch()" :disabled="$store.kurultaiPeopleStore.searching">Search</button>
+        </div>
+        <template x-if="$store.kurultaiPeopleStore.hits.length">
+          <div class="results">
+            <template x-for="(hit, index) in $store.kurultaiPeopleStore.hits" :key="index">
+              <article class="hit">
+                <strong x-text="hit.title"></strong>
+                <div class="meta" x-text="`${hit.source} / ${hit.source_id}`"></div>
+                <p x-text="hit.snippet"></p>
+              </article>
+            </template>
+          </div>
+        </template>
+      </div>
+    </template>
+  </div>
+  <style>
+    .search-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 12px 0; }
+    .results { display: grid; gap: 12px; max-height: 60vh; overflow: auto; }
+    .hit { border: 1px solid var(--color-border, #333); border-radius: 8px; padding: 10px; }
+    .meta { opacity: 0.75; font-size: 0.8rem; margin: 4px 0; }
+  </style>
+</body>
+</html>

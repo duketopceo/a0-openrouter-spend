@@ -1,0 +1,6 @@
+kurultai_base_url: ""
+kurultai_mcp_url: ""
+timeout_seconds: 15
+max_results: 8
+snippet_max_chars: 400
+test_query: "Luke Duke"
