@@ -1,9 +1,10 @@
 title: OpenRouter Usage
 description: Track OpenRouter org spend, per-key usage, and top models with a native sidebar widget and detailed dashboard.
-github: https://github.com/duketopceo/a0-openrouter-spend
+github: https://github.com/duketopceo/openrouter_usage
 tags:
-  - developer
-  - dashboard
-  - external
+  - development
+  - monitoring
+  - api
+  - llm
 screenshots:
-  - https://raw.githubusercontent.com/duketopceo/a0-openrouter-spend/main/plugins/openrouter_usage/docs/logo.webp
+  - https://raw.githubusercontent.com/duketopceo/openrouter_usage/main/docs/logo.webp
