@@ -31,6 +31,13 @@ export const store = createStore("openrouterUsageStore", {
     return `${totals.usd_label || "$0"} · last 30d`;
   },
 
+  get widgetLabel() {
+    const totals = this.overview?.totals;
+    if (this.loading) return "…";
+    if (!totals) return "OR";
+    return totals.usd_label || "$0";
+  },
+
   get creditLine() {
     const credits = this.overview?.credits;
     if (!credits) return "";

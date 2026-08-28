@@ -58,14 +58,22 @@
   </div>
 
   <style>
-    .hero { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
-    .hero img { border-radius: 12px; }
+    .hero { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+    .hero img { border-radius: 12px; flex: none; }
     .field-grid { display: grid; gap: 12px; margin-top: 12px; }
     .field { display: grid; gap: 6px; }
-    .field.inline { grid-template-columns: auto 1fr; align-items: center; }
+    .field input, .field textarea, .field select { min-height: 44px; font-size: 16px; }
+    .field.inline { grid-template-columns: auto 1fr; align-items: center; gap: 10px; }
     .field-title { font-weight: 700; font-size: 0.84rem; }
-    .hint { opacity: 0.8; font-size: 0.82rem; margin-top: 12px; }
-    .actions-row { margin-top: 16px; display: flex; gap: 8px; }
+    .hint { opacity: 0.8; font-size: 0.82rem; margin-top: 12px; line-height: 1.45; }
+    .actions-row { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions-row .btn { min-height: 44px; flex: 1; min-width: 140px; }
+    .key-list { display: grid; gap: 8px; max-height: min(220px, 40vh); overflow: auto; -webkit-overflow-scrolling: touch; margin-top: 8px; }
+    .key-row { display: flex; gap: 8px; align-items: center; font-size: 0.85rem; min-height: 44px; }
+    @media (max-width: 720px) {
+      .field.inline { grid-template-columns: 1fr; }
+      .hero { flex-direction: column; align-items: flex-start; }
+    }
   </style>
 </body>
 </html>

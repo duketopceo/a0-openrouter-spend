@@ -67,6 +67,7 @@
               </template>
 
               <h3>Per-key totals</h3>
+              <div class="table-wrap">
               <table class="table">
                 <thead>
                   <tr>
@@ -93,6 +94,7 @@
                   </template>
                 </tbody>
               </table>
+              </div>
             </div>
           </template>
 
@@ -105,23 +107,35 @@
   </div>
 
   <style>
-    .header-row { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
-    .toggle-row { display: flex; gap: 6px; }
+    .header-row { display: flex; justify-content: space-between; gap: 12px; align-items: start; flex-wrap: wrap; }
+    .toggle-row { display: flex; gap: 6px; flex-wrap: wrap; }
     .btn.active { outline: 2px solid var(--color-primary, #6cf); }
-    .cards { display: grid; gap: 12px; margin: 12px 0; }
+    .cards { display: grid; gap: 12px; margin: 12px 0; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
     .card { border: 1px solid var(--color-border, #333); border-radius: 10px; padding: 12px; }
     .card-label { opacity: 0.75; font-size: 0.8rem; }
-    .card-value { font-size: 1.3rem; font-weight: 700; }
+    .card-value { font-size: clamp(1.1rem, 4vw, 1.3rem); font-weight: 700; word-break: break-word; }
     .panel { display: grid; gap: 8px; }
-    .bar-row { display: grid; grid-template-columns: 72px 1fr auto; gap: 8px; align-items: center; }
-    .bar-track { height: 10px; background: color-mix(in srgb, var(--color-border) 40%, transparent); border-radius: 999px; overflow: hidden; display: flex; }
-    .bar-fill { height: 100%; background: var(--color-primary, #6cf); opacity: 0.85; }
+    .bar-row { display: grid; grid-template-columns: minmax(56px, 72px) 1fr auto; gap: 8px; align-items: center; }
+    .bar-label { font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { height: 10px; min-width: 0; background: color-mix(in srgb, var(--color-border) 40%, transparent); border-radius: 999px; overflow: hidden; display: flex; }
+    .bar-fill { height: 100%; background: var(--color-primary, #6cf); opacity: 0.85; min-width: 2px; }
     .bar-fill.key { background: #7bdff9; }
     .bar-fill.model { background: #f7b267; }
-    .table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .table th, .table td { border-bottom: 1px solid var(--color-border, #333); padding: 6px 4px; text-align: left; }
-    .empty, .warn { margin-top: 12px; padding: 10px; border-radius: 8px; background: color-mix(in srgb, var(--color-border) 25%, transparent); }
+    .bar-value { font-size: 0.75rem; white-space: nowrap; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; padding: 0 4px; }
+    .table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 0.82rem; }
+    .table th, .table td { border-bottom: 1px solid var(--color-border, #333); padding: 8px 6px; text-align: left; }
+    .empty, .warn { margin-top: 12px; padding: 10px; border-radius: 8px; background: color-mix(in srgb, var(--color-border) 25%, transparent); font-size: 0.9rem; }
     .subline { opacity: 0.75; font-size: 0.8rem; }
+    @media (max-width: 720px) {
+      .header-row { flex-direction: column; align-items: stretch; }
+      .toggle-row { width: 100%; }
+      .toggle-row .btn { flex: 1; min-height: 44px; }
+      .bar-row { grid-template-columns: 1fr; gap: 4px; }
+      .bar-label { white-space: normal; }
+      .bar-value { justify-self: start; }
+      .card-value { font-size: 1.15rem; }
+    }
   </style>
 </body>
 </html>

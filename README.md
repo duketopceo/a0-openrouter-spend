@@ -30,13 +30,14 @@ OPENROUTER_MANAGEMENT_KEY=...     # required for usage widget
 
 ## Plugin Hub / Store
 
-Each plugin includes:
+Each plugin includes store assets and a full publish guide:
 
-- `docs/logo.webp` — store thumbnail & welcome card art
-- `index/<name>/index.yaml` — manifest for [agent0ai/a0-plugins](https://github.com/agent0ai/a0-plugins)
-- Discovery **feature cards** when not yet configured
+- [Publishing to the Plugin Hub](docs/PUBLISHING.md)
+- `index/<name>/index.yaml` + `thumbnail.webp` (< 20 KB)
+- Welcome **feature cards** when not configured
 
 ## Docs
 
 - [Kurultai Memory README](plugins/kurultai_people/README.md)
 - [OpenRouter Usage README](plugins/openrouter_usage/README.md)
+- [Publish to Plugin Hub](docs/PUBLISHING.md)

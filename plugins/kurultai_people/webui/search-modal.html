@@ -28,9 +28,16 @@
   </div>
   <style>
     .search-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 12px 0; }
-    .results { display: grid; gap: 12px; max-height: 60vh; overflow: auto; }
-    .hit { border: 1px solid var(--color-border, #333); border-radius: 8px; padding: 10px; }
-    .meta { opacity: 0.75; font-size: 0.8rem; margin: 4px 0; }
+    .search-row input { min-height: 44px; font-size: 16px; }
+    .search-row .btn { min-height: 44px; min-width: 44px; }
+    .results { display: grid; gap: 12px; max-height: min(60vh, 520px); overflow: auto; -webkit-overflow-scrolling: touch; }
+    .hit { border: 1px solid var(--color-border, #333); border-radius: 8px; padding: 12px; }
+    .hit p { word-break: break-word; line-height: 1.45; margin: 0; }
+    .meta { opacity: 0.75; font-size: 0.8rem; margin: 4px 0; word-break: break-all; }
+    @media (max-width: 720px) {
+      .search-row { grid-template-columns: 1fr; }
+      .search-row .btn { width: 100%; }
+    }
   </style>
 </body>
 </html>
