@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date as date_cls, datetime, timezone
 from typing import Any
 
@@ -125,6 +126,35 @@ def _empty_payload(empty_state: str) -> dict[str, Any]:
     }
 
 
+def _fetch_credits(api_key: str) -> dict[str, Any]:
+    return _unwrap_dict(get_json(f"{API_BASE}/credits", api_key), "data")
+
+
+def _fetch_keys_list(api_key: str) -> list[Any]:
+    return _unwrap_list(get_json(f"{API_BASE}/keys", api_key), "data", "keys")
+
+
+def _fetch_key_activity(row: dict[str, Any], api_key: str) -> tuple[list[Any], str | None]:
+    hash_value = str(row.get("hash") or row.get("hash_prefix") or "")
+    if not hash_value:
+        return [], None
+    prefix = str(row.get("hash_prefix") or hash_value[:8])
+    label = str(row.get("label") or prefix)
+    try:
+        activity_raw = get_json(with_query(f"{API_BASE}/activity", {"api_key_hash": hash_value}), api_key)
+        rows = _unwrap_list(activity_raw, "data", "activity")
+        tagged = []
+        for record in rows:
+            if isinstance(record, dict):
+                tagged_record = dict(record)
+                tagged_record["_key_prefix"] = prefix
+                tagged_record["_key_label"] = label
+                tagged.append(tagged_record)
+        return tagged, None
+    except OpenRouterError as exc:
+        return [], f"{prefix}: {exc}"
+
+
 def fetch_overview(agent=None, *, force: bool = False) -> dict[str, Any]:
     with _OVERVIEW_LOCK:
         settings = load_settings(agent)
@@ -144,19 +174,19 @@ def fetch_overview(agent=None, *, force: bool = False) -> dict[str, Any]:
         watched = settings["watched_key_hashes"]
         errors: list[str] = []
 
-        try:
-            credits_raw = get_json(f"{API_BASE}/credits", key)
-            credits = _unwrap_dict(credits_raw, "data")
-        except OpenRouterError as exc:
-            credits = {}
-            errors.append(str(exc))
-
-        try:
-            keys_raw = get_json(f"{API_BASE}/keys", key)
-            keys_list = _unwrap_list(keys_raw, "data", "keys")
-        except OpenRouterError as exc:
-            keys_list = []
-            errors.append(str(exc))
+        credits: dict[str, Any] = {}
+        keys_list: list[Any] = []
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            credits_future = pool.submit(_fetch_credits, key)
+            keys_future = pool.submit(_fetch_keys_list, key)
+            try:
+                credits = credits_future.result()
+            except OpenRouterError as exc:
+                errors.append(f"credits: {exc}")
+            try:
+                keys_list = keys_future.result()
+            except OpenRouterError as exc:
+                errors.append(f"keys: {exc}")
 
         normalized_keys: list[dict[str, Any]] = []
         hash_to_label: dict[str, str] = {}
@@ -207,17 +237,13 @@ def fetch_overview(agent=None, *, force: bool = False) -> dict[str, Any]:
             except OpenRouterError as exc:
                 errors.append(f"aggregate: {exc}")
         else:
-            for row in keys_for_activity:
-                hash_value = row.get("hash") or row.get("hash_prefix") or ""
-                if not hash_value:
-                    continue
-                try:
-                    activity_raw = get_json(with_query(f"{API_BASE}/activity", {"api_key_hash": hash_value}), key)
-                    rows = _unwrap_list(activity_raw, "data", "activity")
-                    _ingest_activity(rows, row)
-                except OpenRouterError as exc:
-                    prefix = row.get("hash_prefix") or hash_value[:8]
-                    errors.append(f"{prefix}: {exc}")
+            with ThreadPoolExecutor(max_workers=5) as pool:
+                futures = [pool.submit(_fetch_key_activity, row, key) for row in keys_for_activity]
+                for future in as_completed(futures):
+                    records, err = future.result()
+                    if err:
+                        errors.append(err)
+                    activity_rows.extend(records)
 
         totals = {
             "usd": 0.0,
