@@ -25,27 +25,71 @@ export const store = createStore("openrouterUsageStore", {
     return !!this.overview?.ok;
   },
 
+  get summary() {
+    return this.overview?.summary || {};
+  },
+
+  get totals() {
+    return this.overview?.totals || {};
+  },
+
+  get credits() {
+    return this.overview?.credits || {};
+  },
+
   get summaryLine() {
-    const totals = this.overview?.totals;
-    if (!totals) return "No data";
+    const totals = this.totals;
     return `${totals.usd_label || "$0"} · last 30d`;
   },
 
-  get widgetLabel() {
-    const totals = this.overview?.totals;
-    if (this.loading) return "…";
-    if (!totals) return "OR";
-    return totals.usd_label || "$0";
+  get creditLine() {
+    const c = this.credits;
+    if (!c) return "";
+    const balance = c.balance_label || "—";
+    const lifetime = c.usage_label || "—";
+    return `Balance ${balance} · Lifetime ${lifetime}`;
   },
 
-  get creditLine() {
-    const credits = this.overview?.credits;
-    if (!credits) return "";
-    return credits.balance_label ? `Balance ${credits.balance_label}` : "";
+  get mtdLine() {
+    const s = this.summary;
+    return `MTD ${s.mtd_label || "$0"}`;
+  },
+
+  get widgetLabel() {
+    if (this.loading) return "…";
+    return this.totals?.usd_label || "OR";
   },
 
   get topKeys() {
     return Array.isArray(this.overview?.top_keys) ? this.overview.top_keys : [];
+  },
+
+  get topModels() {
+    return Array.isArray(this.overview?.top_models) ? this.overview.top_models : [];
+  },
+
+  get topProviders() {
+    return Array.isArray(this.overview?.top_providers) ? this.overview.top_providers : [];
+  },
+
+  get allModels() {
+    return Array.isArray(this.overview?.models) ? this.overview.models : [];
+  },
+
+  get allProviders() {
+    return Array.isArray(this.overview?.providers) ? this.overview.providers : [];
+  },
+
+  get perKey() {
+    return Array.isArray(this.overview?.per_key) ? this.overview.per_key : [];
+  },
+
+  get daily() {
+    return Array.isArray(this.overview?.daily) ? this.overview.daily : [];
+  },
+
+  get showTokenCounts() {
+    return !!this.overview?.settings?.show_token_counts;
   },
 
   get asOfLabel() {
@@ -55,6 +99,10 @@ export const store = createStore("openrouterUsageStore", {
     } catch {
       return this.overview.as_of;
     }
+  },
+
+  get allKeyColors() {
+    return this.colorMapFor(this.perKey.map((row) => row.label));
   },
 
   setView(mode) {
@@ -123,6 +171,17 @@ export const store = createStore("openrouterUsageStore", {
     this.stopPolling();
   },
 
+  formatNumber(n) {
+    return Number(n || 0).toLocaleString();
+  },
+
+  formatUsd(value) {
+    const n = Number(value || 0);
+    if (n < 0.01) return `$${n.toFixed(4)}`;
+    if (n < 1) return `$${n.toFixed(3)}`;
+    return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  },
+
   maxBar(values, field = "usd") {
     const nums = values.map((item) => Number(item[field]) || 0);
     return Math.max(...nums, 0.0001);
@@ -132,8 +191,55 @@ export const store = createStore("openrouterUsageStore", {
     const pct = Math.min(100, (Number(value || 0) / max) * 100);
     return `${pct}%`;
   },
-});
 
-export default function bootstrapOpenRouterUsage() {
-  store.fetchOverview().then(() => store.startPolling());
-}
+  pctOf(value, total) {
+    const t = Number(total || 0);
+    if (!t) return "0%";
+    return `${Math.min(100, Math.round((Number(value || 0) / t) * 100))}%`;
+  },
+
+  colorFor(index) {
+    const palette = [
+      "#7bdff9",
+      "#f7b267",
+      "#b2f7ef",
+      "#f79d84",
+      "#87ceeb",
+      "#ffdfba",
+      "#a0c4ff",
+      "#ffc6ff",
+      "#9bf6ff",
+      "#fdffb6",
+    ];
+    return palette[index % palette.length];
+  },
+
+  colorMapFor(labels) {
+    const map = {};
+    (labels || []).forEach((label, i) => {
+      map[label] = this.colorFor(i);
+    });
+    return map;
+  },
+
+  stackedSegments(day, colorMap) {
+    const byKey = day.by_key || {};
+    const total = Number(day.total) || Object.values(byKey).reduce((a, b) => a + b, 0);
+    const labels = Object.keys(byKey).sort();
+    let left = 0;
+    return labels.map((label) => {
+      const value = Number(byKey[label]) || 0;
+      const pct = total ? (value / total) * 100 : 0;
+      const seg = {
+        label,
+        value,
+        color: colorMap?.[label] || this.colorFor(0),
+        pct,
+        left,
+        total,
+      };
+      left += pct;
+      return seg;
+    });
+  },
+});

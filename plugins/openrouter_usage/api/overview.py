@@ -1,3 +1,4 @@
+import asyncio
 from helpers.api import ApiHandler, Input, Output, Request
 from usr.plugins.openrouter_usage.helpers.openrouter_client import fetch_overview
 
@@ -10,4 +11,4 @@ class Overview(ApiHandler):
             agent = context.agent0 if context else None
         except Exception:
             agent = None
-        return fetch_overview(agent, force=force)
+        return await asyncio.to_thread(fetch_overview, agent, force=force)

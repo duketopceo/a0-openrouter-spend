@@ -1,3 +1,4 @@
+import asyncio
 from helpers.api import ApiHandler, Input, Output, Request
 from usr.plugins.openrouter_usage.helpers.openrouter_client import fetch_keys
 
@@ -9,4 +10,4 @@ class KeysList(ApiHandler):
             agent = context.agent0 if context else None
         except Exception:
             agent = None
-        return fetch_keys(agent)
+        return await asyncio.to_thread(fetch_keys, agent)
