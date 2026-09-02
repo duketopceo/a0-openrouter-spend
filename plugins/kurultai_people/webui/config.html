@@ -1,0 +1,79 @@
+<html>
+<head>
+  <title>Kurultai Memory</title>
+  <script type="module" src="/plugins/kurultai_people/webui/kurultai-store.js"></script>
+</head>
+<body>
+  <div x-data>
+    <div class="hero">
+      <img src="/plugins/kurultai_people/docs/logo.webp" alt="Kurultai Memory" width="56" height="56" />
+      <div>
+        <div class="section-title">Kurultai Memory</div>
+        <div class="section-description">Connect Agent Zero to your Kurultai brain — search, recall, and cite indexed knowledge.</div>
+      </div>
+    </div>
+
+    <div class="field-grid">
+      <label class="field">
+        <span class="field-title">Base URL</span>
+        <input x-model="config.kurultai_base_url" placeholder="http://127.0.0.1:8421" />
+      </label>
+      <label class="field">
+        <span class="field-title">MCP URL (optional)</span>
+        <input x-model="config.kurultai_mcp_url" placeholder="http://127.0.0.1:8421/mcp" />
+      </label>
+      <label class="field">
+        <span class="field-title">Project namespace</span>
+        <input x-model="config.kurultai_project" placeholder="default (or KURULTAI_PROJECT)" />
+      </label>
+      <label class="field">
+        <span class="field-title">Timeout (seconds)</span>
+        <input type="number" min="3" x-model.number="config.timeout_seconds" />
+      </label>
+      <label class="field">
+        <span class="field-title">Max results</span>
+        <input type="number" min="1" max="50" x-model.number="config.max_results" />
+      </label>
+      <label class="field">
+        <span class="field-title">Snippet length</span>
+        <input type="number" min="80" max="2000" x-model.number="config.snippet_max_chars" />
+      </label>
+      <label class="field">
+        <span class="field-title">Test query</span>
+        <input x-model="config.test_query" />
+      </label>
+      <label class="field inline">
+        <input type="checkbox" x-model="config.prefer_recall_for_memory" />
+        <span>Prefer project recall for memory-style queries</span>
+      </label>
+    </div>
+
+    <p class="hint">Optional bearer token: add <code>KURULTAI_API_KEY</code> in Agent Zero Secrets.</p>
+
+    <div class="actions-row">
+      <button type="button" class="btn" @click="$store.kurultaiPeopleStore.testConnection()" :disabled="$store.kurultaiPeopleStore.testing">
+        <span x-text="$store.kurultaiPeopleStore.testing ? 'Testing…' : 'Test connection'"></span>
+      </button>
+    </div>
+  </div>
+
+  <style>
+    .hero { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+    .hero img { border-radius: 12px; flex: none; }
+    .field-grid { display: grid; gap: 12px; margin-top: 12px; }
+    .field { display: grid; gap: 6px; }
+    .field input, .field textarea, .field select { min-height: 44px; font-size: 16px; }
+    .field.inline { grid-template-columns: auto 1fr; align-items: center; gap: 10px; }
+    .field-title { font-weight: 700; font-size: 0.84rem; }
+    .hint { opacity: 0.8; font-size: 0.82rem; margin-top: 12px; line-height: 1.45; }
+    .actions-row { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions-row .btn { min-height: 44px; flex: 1; min-width: 140px; }
+    .key-list { display: grid; gap: 8px; max-height: min(220px, 40vh); overflow: auto; -webkit-overflow-scrolling: touch; margin-top: 8px; }
+    .key-row { display: flex; gap: 8px; align-items: center; font-size: 0.85rem; min-height: 44px; }
+    @media (max-width: 720px) {
+      .field.inline { grid-template-columns: 1fr; }
+      .hero { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</body>
+</html>

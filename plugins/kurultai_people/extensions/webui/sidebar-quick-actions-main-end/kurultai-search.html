@@ -1,0 +1,22 @@
+<script type="module">
+  import { store } from "/plugins/kurultai_people/webui/kurultai-store.js";
+</script>
+
+<button type="button"
+        class="config-button kurultai-sidebar-btn"
+        title="Kurultai Memory"
+        @click="openModal('/plugins/kurultai_people/webui/search-modal.html')">
+  <img src="/plugins/kurultai_people/docs/logo.webp" alt="" width="22" height="22" />
+</button>
+
+<style>
+  .kurultai-sidebar-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+  }
+  .kurultai-sidebar-btn img { border-radius: 4px; }
+</style>

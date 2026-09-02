@@ -1,0 +1,43 @@
+<html>
+<head>
+  <title>Search Kurultai</title>
+  <script type="module" src="/plugins/kurultai_people/webui/kurultai-store.js"></script>
+</head>
+<body>
+  <div x-data>
+    <template x-if="$store.kurultaiPeopleStore">
+      <div x-init="$store.kurultaiPeopleStore.onOpen()" x-destroy="$store.kurultaiPeopleStore.cleanup()">
+        <div class="section-title">Search Kurultai</div>
+        <div class="search-row">
+          <input type="text" x-model="$store.kurultaiPeopleStore.query" placeholder="Who is… / search notes" @keydown.enter="$store.kurultaiPeopleStore.runSearch()" />
+          <button type="button" class="btn" @click="$store.kurultaiPeopleStore.runSearch()" :disabled="$store.kurultaiPeopleStore.searching">Search</button>
+        </div>
+        <template x-if="$store.kurultaiPeopleStore.hits.length">
+          <div class="results">
+            <template x-for="(hit, index) in $store.kurultaiPeopleStore.hits" :key="index">
+              <article class="hit">
+                <strong x-text="hit.title"></strong>
+                <div class="meta" x-text="`${hit.source} / ${hit.source_id}`"></div>
+                <p x-text="hit.snippet"></p>
+              </article>
+            </template>
+          </div>
+        </template>
+      </div>
+    </template>
+  </div>
+  <style>
+    .search-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 12px 0; }
+    .search-row input { min-height: 44px; font-size: 16px; }
+    .search-row .btn { min-height: 44px; min-width: 44px; }
+    .results { display: grid; gap: 12px; max-height: min(60vh, 520px); overflow: auto; -webkit-overflow-scrolling: touch; }
+    .hit { border: 1px solid var(--color-border, #333); border-radius: 8px; padding: 12px; }
+    .hit p { word-break: break-word; line-height: 1.45; margin: 0; }
+    .meta { opacity: 0.75; font-size: 0.8rem; margin: 4px 0; word-break: break-all; }
+    @media (max-width: 720px) {
+      .search-row { grid-template-columns: 1fr; }
+      .search-row .btn { width: 100%; }
+    }
+  </style>
+</body>
+</html>
