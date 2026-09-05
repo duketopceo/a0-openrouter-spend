@@ -1,7 +1,7 @@
 name: kurultai_people
 title: Kurultai Memory
 description: Connect Agent Zero to your Kurultai brain — search, recall, and cite indexed knowledge with excerpts, not file dumps.
-version: 1.1.0
+version: 1.2.0
 settings_sections:
   - external
 per_project_config: false

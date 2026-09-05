@@ -1,277 +1,420 @@
 <html>
 <head>
   <title>OpenRouter Usage</title>
+  <link rel="stylesheet" href="/plugins/openrouter_usage/webui/ui-kit.css" />
   <script type="module" src="/plugins/openrouter_usage/webui/usage-store.js"></script>
 </head>
 <body>
-  <div x-data>
+  <div x-data x-cloak>
     <template x-if="$store.openrouterUsageStore">
       <div x-init="$store.openrouterUsageStore.onOpen()" x-destroy="$store.openrouterUsageStore.cleanup()">
 
-        <div class="or-header">
-          <div>
-            <div class="section-title">OpenRouter Usage</div>
-            <div class="or-subline" x-text="$store.openrouterUsageStore.asOfLabel ? `Updated ${$store.openrouterUsageStore.asOfLabel}` : ''"></div>
+        <!-- Hero -->
+        <div class="ui-hero">
+          <img src="/plugins/openrouter_usage/docs/logo.webp" alt="" />
+          <div class="ui-hero-titles">
+            <div class="ui-hero-title">OpenRouter Usage</div>
+            <div class="ui-hero-sub">
+              <span x-text="$store.openrouterUsageStore.asOfLabel ? `Updated ${$store.openrouterUsageStore.asOfLabel}` : 'Loading…'"></span>
+            </div>
           </div>
-          <div class="or-toggle">
-            <button type="button" class="btn" :class="{ active: $store.openrouterUsageStore.view === 'simple' }" @click="$store.openrouterUsageStore.setView('simple')">Simple</button>
-            <button type="button" class="btn" :class="{ active: $store.openrouterUsageStore.view === 'detailed' }" @click="$store.openrouterUsageStore.setView('detailed')">Detailed</button>
+          <div class="ui-hero-side">
+            <span class="ui-pill" x-show="$store.openrouterUsageStore.stale"><span class="ui-dot warn"></span>stale</span>
+            <select class="ws-select"
+                    x-show="$store.openrouterUsageStore.workspaces.length"
+                    :value="$store.openrouterUsageStore.selectedWorkspaceId"
+                    @change="$store.openrouterUsageStore.selectWorkspace($event.target.value)">
+              <template x-for="ws in $store.openrouterUsageStore.workspaces" :key="ws.id">
+                <option :value="ws.id" x-text="ws.name || ws.id"></option>
+              </template>
+            </select>
+            <button type="button" class="ui-btn" @click="$store.openrouterUsageStore.fetchOverview({ force: true })" :disabled="$store.openrouterUsageStore.loading">↻</button>
+            <div class="ui-seg">
+              <button type="button" class="ui-btn" :class="{ on: $store.openrouterUsageStore.view === 'simple' }" @click="$store.openrouterUsageStore.setView('simple')">Simple</button>
+              <button type="button" class="ui-btn" :class="{ on: $store.openrouterUsageStore.view === 'detailed' }" @click="$store.openrouterUsageStore.setView('detailed')">Detailed</button>
+            </div>
           </div>
         </div>
 
+        <!-- Loading skeleton (first load) -->
+        <template x-if="$store.openrouterUsageStore.loading && !$store.openrouterUsageStore.hasData">
+          <div class="ui-kpis">
+            <template x-for="i in 4" :key="i"><div class="ui-skel" style="height:84px"></div></template>
+          </div>
+        </template>
+
+        <!-- Missing key -->
         <template x-if="$store.openrouterUsageStore.emptyState === 'missing_management_key'">
-          <div class="or-empty">Add <code>OPENROUTER_MANAGEMENT_KEY</code> to Agent Zero Secrets, then refresh.</div>
+          <div class="ui-empty">
+            <div class="big">No management key</div>
+            <div class="sub">Add <code>OPENROUTER_MANAGEMENT_KEY</code> to Agent Zero Secrets, then refresh.</div>
+          </div>
+        </template>
+
+        <!-- Fatal error -->
+        <template x-if="$store.openrouterUsageStore.error && !$store.openrouterUsageStore.hasData">
+          <div class="ui-banner bad" x-text="$store.openrouterUsageStore.error"></div>
         </template>
 
         <template x-if="$store.openrouterUsageStore.hasData">
-          <!-- Summary cards -->
-          <div class="or-grid">
-            <div class="or-card or-card-primary">
-              <div class="or-card-label">30-day spend</div>
-              <div class="or-card-value" x-text="$store.openrouterUsageStore.totals?.usd_label || '$0'"></div>
-              <div class="or-card-sub" x-text="`${$store.openrouterUsageStore.formatNumber($store.openrouterUsageStore.totals?.requests || 0)} requests`"></div>
+          <div>
+            <!-- KPI strip -->
+            <div class="ui-kpis">
+              <div class="ui-kpi accent">
+                <div class="k-label" x-text="`Spend · ${$store.openrouterUsageStore.historyDays}d`"></div>
+                <div class="k-value" x-text="$store.openrouterUsageStore.overview?.totals?.usd_label || '—'"></div>
+                <div class="k-sub" x-text="$store.openrouterUsageStore.creditLine"></div>
+              </div>
+              <div class="ui-kpi">
+                <div class="k-label">Credit balance</div>
+                <div class="k-value" x-text="$store.openrouterUsageStore.overview?.credits?.balance_label || '—'"></div>
+                <div class="k-sub" x-text="`Month ${$store.openrouterUsageStore.spendThisMonth}`"></div>
+              </div>
+              <div class="ui-kpi">
+                <div class="k-label">Today</div>
+                <div class="k-value" x-text="$store.openrouterUsageStore.spendToday"></div>
+                <div class="k-sub" x-text="$store.openrouterUsageStore.activeWorkspaceName"></div>
+              </div>
+              <div class="ui-kpi" x-show="$store.openrouterUsageStore.topModel">
+                <div class="k-label">Top model</div>
+                <div class="k-value" x-text="$store.openrouterUsageStore.topModel?.model"></div>
+                <div class="k-sub" x-text="$store.openrouterUsageStore.topModel?.total_usage_label"></div>
+              </div>
+              <div class="ui-kpi" x-show="$store.openrouterUsageStore.topKey">
+                <div class="k-label">Top key</div>
+                <div class="k-value" x-text="$store.openrouterUsageStore.topKey?.label"></div>
+                <div class="k-sub" x-text="$store.openrouterUsageStore.topKey?.total_usage_label"></div>
+              </div>
             </div>
-            <div class="or-card">
-              <div class="or-card-label">Month-to-date</div>
-              <div class="or-card-value" x-text="$store.openrouterUsageStore.summary?.mtd_label || '$0'"></div>
-              <div class="or-card-sub" x-text="`${$store.openrouterUsageStore.pctOf($store.openrouterUsageStore.summary?.mtd, $store.openrouterUsageStore.credits?.total_usage)} of lifetime`"></div>
-            </div>
-            <div class="or-card">
-              <div class="or-card-label">Lifetime spend</div>
-              <div class="or-card-value" x-text="$store.openrouterUsageStore.credits?.usage_label || '—'"></div>
-              <div class="or-card-sub" x-text="`Balance ${$store.openrouterUsageStore.credits?.balance_label || '—'}`"></div>
-            </div>
-            <div class="or-card">
-              <div class="or-card-label">Daily average</div>
-              <div class="or-card-value" x-text="$store.openrouterUsageStore.summary?.avg_daily_label || '$0'"></div>
-              <div class="or-card-sub" x-text="`${$store.openrouterUsageStore.summary?.projected_monthly_label || '$0'} projected 30d`"></div>
-            </div>
-          </div>
 
-          <!-- SIMPLE VIEW -->
-          <template x-if="$store.openrouterUsageStore.view === 'simple'">
-            <div class="or-simple">
-              <section class="or-section">
-                <h3>Top models</h3>
-                <div class="or-bars">
-                  <template x-for="(row, i) in ($store.openrouterUsageStore.topModels || [])" :key="row.model">
-                    <div class="or-bar-row">
-                      <span class="or-bar-label" x-text="row.model"></span>
-                      <div class="or-bar-track">
-                        <div class="or-bar-fill" :style="{ width: $store.openrouterUsageStore.barWidth(row.usd, $store.openrouterUsageStore.maxBar($store.openrouterUsageStore.allModels)), background: $store.openrouterUsageStore.colorFor(i) }"></div>
-                      </div>
-                      <span class="or-bar-value" x-text="$store.openrouterUsageStore.formatUsd(row.usd)"></span>
+            <!-- Simple view: sparkline + top lists -->
+            <div x-show="$store.openrouterUsageStore.view === 'simple'">
+              <div class="ui-card">
+                <h3>Daily spend</h3>
+                <div class="ui-spark">
+                  <template x-for="day in ($store.openrouterUsageStore.overview?.daily || [])" :key="day.day || day.label">
+                    <i :style="{ height: $store.openrouterUsageStore.barPct($store.openrouterUsageStore.totalDaily(day), $store.openrouterUsageStore.dailyMax) }" :title="`${day.label}: ${$store.openrouterUsageStore.fmtUsd($store.openrouterUsageStore.totalDaily(day))}`"></i>
+                  </template>
+                </div>
+              </div>
+              <div class="ui-split" style="margin-top:12px">
+                <div class="ui-card">
+                  <h3>Top models</h3>
+                  <template x-for="row in ($store.openrouterUsageStore.overview?.top_models || []).slice(0, 6)" :key="row.model">
+                    <div class="ui-bar-row">
+                      <span class="ui-bar-label" x-text="row.model || 'unknown'"></span>
+                      <div class="ui-bar-track"><div class="ui-bar-fill" :style="{ width: $store.openrouterUsageStore.barPct(row.total_usage ?? row.usd, $store.openrouterUsageStore.maxOf($store.openrouterUsageStore.overview.top_models, 'total_usage')) }"></div></div>
+                      <span class="ui-bar-val" x-text="$store.openrouterUsageStore.fmtUsd(row.total_usage ?? row.usd)"></span>
                     </div>
                   </template>
                 </div>
-              </section>
-
-              <div class="or-split">
-                <section class="or-section">
+                <div class="ui-card">
                   <h3>Top keys</h3>
-                  <div class="or-bars">
-                    <template x-for="(row, i) in ($store.openrouterUsageStore.topKeys || [])" :key="row.label">
-                      <div class="or-bar-row">
-                        <span class="or-bar-label" x-text="row.label"></span>
-                        <div class="or-bar-track">
-                          <div class="or-bar-fill" :style="{ width: $store.openrouterUsageStore.barWidth(row.usd, $store.openrouterUsageStore.maxBar($store.openrouterUsageStore.perKey)), background: $store.openrouterUsageStore.colorFor(i) }"></div>
-                        </div>
-                        <span class="or-bar-value" x-text="$store.openrouterUsageStore.formatUsd(row.usd)"></span>
-                      </div>
-                    </template>
-                  </div>
-                </section>
+                  <template x-for="row in ($store.openrouterUsageStore.overview?.per_key || []).slice(0, 6)" :key="row.hash || row.label">
+                    <div class="ui-bar-row">
+                      <span class="ui-bar-label" x-text="row.label"></span>
+                      <div class="ui-bar-track"><div class="ui-bar-fill c2" :style="{ width: $store.openrouterUsageStore.barPct(row.usd, $store.openrouterUsageStore.maxOf($store.openrouterUsageStore.overview.per_key, 'usd')) }"></div></div>
+                      <span class="ui-bar-val" x-text="$store.openrouterUsageStore.fmtUsd(row.usd)"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
 
-                <section class="or-section">
-                  <h3>Top providers</h3>
-                  <div class="or-bars">
-                    <template x-for="(row, i) in ($store.openrouterUsageStore.topProviders || [])" :key="row.provider">
-                      <div class="or-bar-row">
-                        <span class="or-bar-label" x-text="row.provider"></span>
-                        <div class="or-bar-track">
-                          <div class="or-bar-fill" :style="{ width: $store.openrouterUsageStore.barWidth(row.usd, $store.openrouterUsageStore.maxBar($store.openrouterUsageStore.allProviders)), background: $store.openrouterUsageStore.colorFor(i) }"></div>
-                        </div>
-                        <span class="or-bar-value" x-text="$store.openrouterUsageStore.formatUsd(row.usd)"></span>
-                      </div>
-                    </template>
-                  </div>
-                </section>
+            <!-- Detailed view -->
+            <div x-show="$store.openrouterUsageStore.view === 'detailed'">
+              <div class="ui-tabs">
+                <template x-for="tab in $store.openrouterUsageStore.tabs" :key="tab.id">
+                  <button type="button" class="ui-tab"
+                          :class="{ on: $store.openrouterUsageStore.activeTab === tab.id }"
+                          @click="$store.openrouterUsageStore.setTab(tab.id)"
+                          x-text="tab.label"></button>
+                </template>
               </div>
 
-              <section class="or-section">
-                <h3>30-day trend</h3>
-                <div class="or-daily-bars">
-                  <template x-for="day in ($store.openrouterUsageStore.daily || [])" :key="day.date">
-                    <div class="or-daily-row">
-                      <span class="or-daily-label" x-text="day.label"></span>
-                      <div class="or-daily-track">
-                        <div class="or-daily-fill" :style="{ width: $store.openrouterUsageStore.barWidth(day.total, $store.openrouterUsageStore.maxBar($store.openrouterUsageStore.daily, 'total')) }"></div>
-                      </div>
-                      <span class="or-daily-value" x-text="$store.openrouterUsageStore.formatUsd(day.total)"></span>
-                    </div>
-                  </template>
-                </div>
-              </section>
-            </div>
-          </template>
-
-          <!-- DETAILED VIEW -->
-          <template x-if="$store.openrouterUsageStore.view === 'detailed'">
-            <div class="or-detailed">
-              <section class="or-section">
-                <h3>Daily spend by key</h3>
-                <div class="or-legend">
-                  <template x-for="(color, label) in $store.openrouterUsageStore.allKeyColors" :key="label">
-                    <span class="or-legend-item"><span class="or-dot" :style="{ background: color }"></span><span x-text="label"></span></span>
-                  </template>
-                </div>
-                <div class="or-daily-bars">
-                  <template x-for="day in ($store.openrouterUsageStore.daily || [])" :key="day.date">
-                    <div class="or-daily-row">
-                      <span class="or-daily-label" x-text="day.label"></span>
-                      <div class="or-daily-track">
-                        <template x-for="seg in $store.openrouterUsageStore.stackedSegments(day, $store.openrouterUsageStore.allKeyColors)" :key="seg.label">
-                          <div class="or-daily-segment" :style="{ width: seg.pct + '%', left: seg.left + '%', background: seg.color }" :title="`${seg.label}: ${$store.openrouterUsageStore.formatUsd(seg.value)} of ${$store.openrouterUsageStore.formatUsd(seg.total)}`"></div>
-                        </template>
-                      </div>
-                      <span class="or-daily-value" x-text="$store.openrouterUsageStore.formatUsd(day.total)"></span>
-                    </div>
-                  </template>
-                </div>
-              </section>
-
-              <section class="or-section">
-                <h3>Spend by key</h3>
-                <div class="or-table-wrap">
-                  <table class="or-table">
-                    <thead>
-                      <tr>
-                        <th>Key</th>
-                        <th>USD</th>
-                        <th x-show="$store.openrouterUsageStore.showTokenCounts">Prompt</th>
-                        <th x-show="$store.openrouterUsageStore.showTokenCounts">Completion</th>
-                        <th x-show="$store.openrouterUsageStore.showTokenCounts">Reasoning</th>
-                        <th>Requests</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <template x-for="row in ($store.openrouterUsageStore.perKey || [])" :key="row.label">
-                        <tr>
-                          <td x-text="row.label"></td>
-                          <td x-text="$store.openrouterUsageStore.formatUsd(row.usd)"></td>
-                          <td x-show="$store.openrouterUsageStore.showTokenCounts" x-text="$store.openrouterUsageStore.formatNumber(row.prompt_tokens)"></td>
-                          <td x-show="$store.openrouterUsageStore.showTokenCounts" x-text="$store.openrouterUsageStore.formatNumber(row.completion_tokens)"></td>
-                          <td x-show="$store.openrouterUsageStore.showTokenCounts" x-text="$store.openrouterUsageStore.formatNumber(row.reasoning_tokens)"></td>
-                          <td x-text="$store.openrouterUsageStore.formatNumber(row.requests)"></td>
-                        </tr>
+              <!-- Overview tab -->
+              <div x-show="$store.openrouterUsageStore.activeTab === 'overview'">
+                <div class="ui-split">
+                  <div class="ui-card">
+                    <h3>Daily spend</h3>
+                    <div class="ui-spark">
+                      <template x-for="day in ($store.openrouterUsageStore.overview?.daily || [])" :key="day.day || day.label">
+                        <i :style="{ height: $store.openrouterUsageStore.barPct($store.openrouterUsageStore.totalDaily(day), $store.openrouterUsageStore.dailyMax) }" :title="`${day.label}: ${$store.openrouterUsageStore.fmtUsd($store.openrouterUsageStore.totalDaily(day))}`"></i>
                       </template>
-                    </tbody>
-                  </table>
+                    </div>
+                  </div>
+                  <div class="ui-card">
+                    <h3>Top providers</h3>
+                    <template x-for="row in ($store.openrouterUsageStore.overview?.top_providers || []).slice(0, 6)" :key="row.provider">
+                      <div class="ui-bar-row">
+                        <span class="ui-bar-label" x-text="row.provider || 'unknown'"></span>
+                        <div class="ui-bar-track"><div class="ui-bar-fill c3" :style="{ width: $store.openrouterUsageStore.barPct(row.total_usage ?? row.usd, $store.openrouterUsageStore.maxOf($store.openrouterUsageStore.overview.top_providers, 'total_usage')) }"></div></div>
+                        <span class="ui-bar-val" x-text="$store.openrouterUsageStore.fmtUsd(row.total_usage ?? row.usd)"></span>
+                      </div>
+                    </template>
+                  </div>
                 </div>
-              </section>
+                <div class="ui-split" style="margin-top:12px">
+                  <div class="ui-card">
+                    <h3>Top apps</h3>
+                    <template x-for="row in ($store.openrouterUsageStore.overview?.top_apps || []).slice(0, 6)" :key="row.app">
+                      <div class="ui-bar-row">
+                        <span class="ui-bar-label" x-text="row.app || 'unknown'"></span>
+                        <div class="ui-bar-track"><div class="ui-bar-fill c4" :style="{ width: $store.openrouterUsageStore.barPct(row.total_usage ?? row.usd, $store.openrouterUsageStore.maxOf($store.openrouterUsageStore.overview.top_apps, 'total_usage')) }"></div></div>
+                        <span class="ui-bar-val" x-text="$store.openrouterUsageStore.fmtUsd(row.total_usage ?? row.usd)"></span>
+                      </div>
+                    </template>
+                  </div>
+                  <div class="ui-card">
+                    <h3>Per-key totals</h3>
+                    <div class="ui-table-wrap">
+                      <table class="ui-table">
+                        <thead><tr>
+                          <th>Key</th><th>USD</th>
+                          <th x-show="$store.openrouterUsageStore.overview?.settings?.show_token_counts">Prompt</th>
+                          <th x-show="$store.openrouterUsageStore.overview?.settings?.show_token_counts">Completion</th>
+                          <th>Req</th>
+                        </tr></thead>
+                        <tbody>
+                          <template x-for="row in ($store.openrouterUsageStore.overview?.per_key || [])" :key="row.hash || row.hash_prefix || row.label">
+                            <tr>
+                              <td x-text="row.label"></td>
+                              <td x-text="$store.openrouterUsageStore.fmtUsd(row.usd)"></td>
+                              <td x-show="$store.openrouterUsageStore.overview?.settings?.show_token_counts" x-text="$store.openrouterUsageStore.fmtNum(row.prompt_tokens)"></td>
+                              <td x-show="$store.openrouterUsageStore.overview?.settings?.show_token_counts" x-text="$store.openrouterUsageStore.fmtNum(row.completion_tokens)"></td>
+                              <td x-text="$store.openrouterUsageStore.fmtNum(row.requests)"></td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-              <div class="or-split">
-                <section class="or-section">
-                  <h3>By model</h3>
-                  <div class="or-table-wrap">
-                    <table class="or-table">
+              <!-- Spend tab -->
+              <div x-show="$store.openrouterUsageStore.activeTab === 'spend'">
+                <div class="ui-card">
+                  <h3>Daily spend</h3>
+                  <template x-for="day in ($store.openrouterUsageStore.overview?.daily || [])" :key="day.day || day.label">
+                    <div class="ui-bar-row">
+                      <span class="ui-bar-label" x-text="day.label"></span>
+                      <div class="ui-bar-track"><div class="ui-bar-fill" :style="{ width: $store.openrouterUsageStore.barPct($store.openrouterUsageStore.totalDaily(day), $store.openrouterUsageStore.dailyMax) }"></div></div>
+                      <span class="ui-bar-val" x-text="$store.openrouterUsageStore.fmtUsd($store.openrouterUsageStore.totalDaily(day))"></span>
+                    </div>
+                  </template>
+                </div>
+                <div class="ui-card" style="margin-top:12px">
+                  <h3>Spend by key</h3>
+                  <template x-for="row in ($store.openrouterUsageStore.overview?.per_key || [])" :key="row.hash || row.hash_prefix || row.label">
+                    <div class="ui-bar-row">
+                      <span class="ui-bar-label" x-text="row.label"></span>
+                      <div class="ui-bar-track"><div class="ui-bar-fill c2" :style="{ width: $store.openrouterUsageStore.barPct(row.usd, $store.openrouterUsageStore.maxOf($store.openrouterUsageStore.overview.per_key, 'usd')) }"></div></div>
+                      <span class="ui-bar-val" x-text="$store.openrouterUsageStore.fmtUsd(row.usd)"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Analytics tabs -->
+              <template x-for="t in [
+                { id: 'models', dim: 'model', cols: [['Usage', 'total_usage', 'usd'], ['Requests', 'request_count', 'num'], ['Prompt tok', 'tokens_prompt', 'num'], ['Completion tok', 'tokens_completion', 'num']] },
+                { id: 'providers', dim: 'provider', cols: [['Usage', 'total_usage', 'usd'], ['Requests', 'request_count', 'num'], ['Avg latency', 'avg_latency', 'ms'], ['P90 latency', 'p90_latency', 'ms'], ['Avg tput', 'avg_throughput', 'num2']] },
+                { id: 'apps', dim: 'app', cols: [['Usage', 'total_usage', 'usd'], ['Requests', 'request_count', 'num']] },
+                { id: 'workspaces', dim: 'workspace', cols: [['Usage', 'total_usage', 'usd'], ['Requests', 'request_count', 'num']] }
+              ]" :key="t.id">
+                <div x-show="$store.openrouterUsageStore.activeTab === t.id">
+                  <div x-show="$store.openrouterUsageStore.loadingTabs" class="ui-kpis"><template x-for="i in 3" :key="i"><div class="ui-skel" style="height:64px"></div></template></div>
+                  <div class="ui-table-wrap" x-show="!$store.openrouterUsageStore.loadingTabs">
+                    <table class="ui-table">
                       <thead>
-                        <tr><th>Model</th><th>Spend</th><th>% of 30d</th></tr>
+                        <tr><th x-text="t.id === 'models' ? 'Model' : t.id === 'providers' ? 'Provider' : t.id === 'apps' ? 'App' : 'Workspace'"></th><template x-for="c in t.cols" :key="c[1]"><th x-text="c[0]"></th></template></tr>
                       </thead>
                       <tbody>
-                        <template x-for="row in ($store.openrouterUsageStore.allModels || [])" :key="row.model">
+                        <template x-for="row in $store.openrouterUsageStore.analyticsRows" :key="row.dimensions?.[t.dim] || JSON.stringify(row.dimensions)">
                           <tr>
-                            <td x-text="row.model"></td>
-                            <td x-text="$store.openrouterUsageStore.formatUsd(row.usd)"></td>
-                            <td x-text="$store.openrouterUsageStore.pctOf(row.usd, $store.openrouterUsageStore.totals?.usd)"></td>
+                            <td x-text="row.dimensions?.[t.dim] || '—'"></td>
+                            <template x-for="c in t.cols" :key="c[1]">
+                              <td x-text="c[2] === 'usd' ? $store.openrouterUsageStore.fmtUsd(row.metrics?.[c[1]]) : c[2] === 'ms' ? $store.openrouterUsageStore.fmtMs(row.metrics?.[c[1]]) : $store.openrouterUsageStore.fmtNum(row.metrics?.[c[1]], c[2] === 'num2' ? 2 : 0)"></td>
+                            </template>
                           </tr>
                         </template>
                       </tbody>
                     </table>
+                    <div class="ui-empty" x-show="!$store.openrouterUsageStore.analyticsRows.length && !$store.openrouterUsageStore.loadingTabs"><div class="sub">No rows for this period.</div></div>
                   </div>
-                </section>
+                </div>
+              </template>
 
-                <section class="or-section">
-                  <h3>By provider</h3>
-                  <div class="or-bars">
-                    <template x-for="(row, i) in ($store.openrouterUsageStore.allProviders || [])" :key="row.provider">
-                      <div class="or-bar-row">
-                        <span class="or-bar-label" x-text="row.provider"></span>
-                        <div class="or-bar-track">
-                          <div class="or-bar-fill" :style="{ width: $store.openrouterUsageStore.barWidth(row.usd, $store.openrouterUsageStore.maxBar($store.openrouterUsageStore.allProviders)), background: $store.openrouterUsageStore.colorFor(i) }"></div>
-                        </div>
-                        <span class="or-bar-value" x-text="$store.openrouterUsageStore.formatUsd(row.usd)"></span>
-                      </div>
-                    </template>
+              <!-- Keys tab -->
+              <div x-show="$store.openrouterUsageStore.activeTab === 'keys'">
+                <div x-show="$store.openrouterUsageStore.loadingTabs" class="ui-kpis"><template x-for="i in 3" :key="i"><div class="ui-skel" style="height:64px"></div></template></div>
+                <div class="ui-table-wrap" x-show="!$store.openrouterUsageStore.loadingTabs">
+                  <table class="ui-table">
+                    <thead><tr><th>Key</th><th>Usage</th><th>Requests</th></tr></thead>
+                    <tbody>
+                      <template x-for="row in $store.openrouterUsageStore.analyticsRows" :key="row.dimensions?.api_key_id || JSON.stringify(row.dimensions)">
+                        <tr>
+                          <td x-text="$store.openrouterUsageStore.keyLabel(row.dimensions?.api_key_id || row.dimensions?.key)"></td>
+                          <td x-text="$store.openrouterUsageStore.fmtUsd(row.metrics?.total_usage)"></td>
+                          <td x-text="$store.openrouterUsageStore.fmtNum(row.metrics?.request_count)"></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                  <div class="ui-empty" x-show="!$store.openrouterUsageStore.analyticsRows.length && !$store.openrouterUsageStore.loadingTabs"><div class="sub">No rows for this period.</div></div>
+                </div>
+              </div>
+
+              <!-- Activity tab -->
+              <div x-show="$store.openrouterUsageStore.activeTab === 'activity'">
+                <div class="ui-table-wrap">
+                  <table class="ui-table">
+                    <thead><tr><th>Date</th><th>Model</th><th>Provider</th><th>Requests</th><th>Usage</th></tr></thead>
+                    <tbody>
+                      <template x-for="row in ($store.openrouterUsageStore.overview?.activity || [])" :key="(row.date || '') + (row.model || '') + (row.provider_name || '') + (row.requests || 0)">
+                        <tr>
+                          <td x-text="row.date ? new Date(row.date).toLocaleDateString() : '—'"></td>
+                          <td x-text="row.model || row.model_permaslug || '—'"></td>
+                          <td x-text="row.provider_name || '—'"></td>
+                          <td x-text="$store.openrouterUsageStore.fmtNum(row.requests)"></td>
+                          <td x-text="$store.openrouterUsageStore.fmtUsd(row.usage)"></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                  <div class="ui-empty" x-show="!($store.openrouterUsageStore.overview?.activity || []).length"><div class="sub">No recent activity.</div></div>
+                </div>
+              </div>
+
+              <!-- Budgets tab -->
+              <div x-show="$store.openrouterUsageStore.activeTab === 'budgets'">
+                <div x-show="$store.openrouterUsageStore.loadingTabs" class="ui-kpis"><template x-for="i in 3" :key="i"><div class="ui-skel" style="height:64px"></div></template></div>
+                <div class="ui-table-wrap" x-show="!$store.openrouterUsageStore.loadingTabs">
+                  <table class="ui-table">
+                    <thead><tr><th>Interval</th><th>Limit</th><th>Usage</th><th>Remaining</th><th>Reset</th></tr></thead>
+                    <tbody>
+                      <template x-for="row in ($store.openrouterUsageStore.budgets.length ? $store.openrouterUsageStore.budgets : ($store.openrouterUsageStore.overview?.budgets || []))" :key="row.interval">
+                        <tr>
+                          <td x-text="row.interval || '—'"></td>
+                          <td x-text="$store.openrouterUsageStore.fmtUsd(row.limit)"></td>
+                          <td x-text="$store.openrouterUsageStore.fmtUsd(row.usage)"></td>
+                          <td x-text="$store.openrouterUsageStore.fmtUsd(row.limit_remaining)"></td>
+                          <td x-text="row.limit_reset || '—'"></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                  <div class="ui-empty" x-show="!($store.openrouterUsageStore.budgets.length || ($store.openrouterUsageStore.overview?.budgets || []).length) && !$store.openrouterUsageStore.loadingTabs"><div class="sub">No budgets configured for this workspace.</div></div>
+                </div>
+              </div>
+
+              <!-- Routing (ORI) tab -->
+              <div x-show="$store.openrouterUsageStore.activeTab === 'routing'">
+                <div x-show="$store.openrouterUsageStore.loadingTabs" class="ui-kpis"><template x-for="i in 3" :key="i"><div class="ui-skel" style="height:64px"></div></template></div>
+                <template x-if="!$store.openrouterUsageStore.routing && !$store.openrouterUsageStore.loadingTabs">
+                  <div class="ui-empty">
+                    <div class="big">Routing harness</div>
+                    <div class="sub">Preview a routing recommendation for this workspace.</div>
+                    <button type="button" class="ui-btn primary" style="margin-top:12px" @click="$store.openrouterUsageStore.fetchRouting()">Preview recommendation</button>
                   </div>
-                </section>
+                </template>
+                <template x-if="$store.openrouterUsageStore.routing">
+                  <div>
+                    <div class="ui-split">
+                      <div class="ui-card">
+                        <h3>Current defaults</h3>
+                        <div class="kpi-mono" x-text="$store.openrouterUsageStore.routing.current?.default_text_model || '—'"></div>
+                        <div class="sub" x-text="`Image: ${$store.openrouterUsageStore.routing.current?.default_image_model || '—'}`"></div>
+                        <div class="sub" x-text="`Providers: ${($store.openrouterUsageStore.routing.current?.default_provider_sort || []).join(', ') || '—'}`"></div>
+                      </div>
+                      <div class="ui-card">
+                        <h3>Recommended</h3>
+                        <div class="kpi-mono" x-text="$store.openrouterUsageStore.routing.recommended?.default_text_model || '—'"></div>
+                        <div class="sub" x-text="`Image: ${$store.openrouterUsageStore.routing.recommended?.default_image_model || '—'}`"></div>
+                        <div class="sub" x-text="`Providers: ${($store.openrouterUsageStore.routing.recommended?.default_provider_sort || []).join(', ') || '—'}`"></div>
+                      </div>
+                      <div class="ui-card">
+                        <h3>Confidence</h3>
+                        <span class="ui-pill" :class="{ good: $store.openrouterUsageStore.routing.confidence === 'high', warn: $store.openrouterUsageStore.routing.confidence === 'medium', bad: $store.openrouterUsageStore.routing.confidence === 'low' }" x-text="$store.openrouterUsageStore.routing.confidence || '—'"></span>
+                        <div class="sub" style="margin-top:8px" x-text="$store.openrouterUsageStore.routing.note || ''"></div>
+                      </div>
+                    </div>
+
+                    <div class="ui-card" style="margin-top:12px" x-show="$store.openrouterUsageStore.routing.tradeoffs && Object.keys($store.openrouterUsageStore.routing.tradeoffs).length">
+                      <h3>Tradeoffs</h3>
+                      <div class="ui-kpis" style="margin:0">
+                        <div class="ui-kpi"><div class="k-label">Cost / 1M tok</div>
+                          <div class="k-value" x-text="`${$store.openrouterUsageStore.fmtUsd($store.openrouterUsageStore.routing.tradeoffs?.current_cost_per_mtok)} → ${$store.openrouterUsageStore.fmtUsd($store.openrouterUsageStore.routing.tradeoffs?.recommended_cost_per_mtok)}`"></div>
+                          <div class="k-sub" x-text="`${($store.openrouterUsageStore.routing.tradeoffs?.cost_change_pct >= 0 ? '+' : '')}${$store.openrouterUsageStore.fmtNum($store.openrouterUsageStore.routing.tradeoffs?.cost_change_pct, 1)}%`"></div>
+                        </div>
+                        <div class="ui-kpi"><div class="k-label">Latency</div>
+                          <div class="k-value" x-text="`${$store.openrouterUsageStore.fmtMs($store.openrouterUsageStore.routing.tradeoffs?.current_avg_latency_ms)} → ${$store.openrouterUsageStore.fmtMs($store.openrouterUsageStore.routing.tradeoffs?.recommended_avg_latency_ms)}`"></div>
+                          <div class="k-sub" x-text="`${($store.openrouterUsageStore.routing.tradeoffs?.latency_change_pct >= 0 ? '+' : '')}${$store.openrouterUsageStore.fmtNum($store.openrouterUsageStore.routing.tradeoffs?.latency_change_pct, 1)}%`"></div>
+                        </div>
+                        <div class="ui-kpi"><div class="k-label">Throughput</div>
+                          <div class="k-value" x-text="`${$store.openrouterUsageStore.fmtNum($store.openrouterUsageStore.routing.tradeoffs?.current_avg_throughput, 2)} → ${$store.openrouterUsageStore.fmtNum($store.openrouterUsageStore.routing.tradeoffs?.recommended_avg_throughput, 2)}`"></div>
+                          <div class="k-sub" x-text="`${($store.openrouterUsageStore.routing.tradeoffs?.throughput_change_pct >= 0 ? '+' : '')}${$store.openrouterUsageStore.fmtNum($store.openrouterUsageStore.routing.tradeoffs?.throughput_change_pct, 1)}%`"></div>
+                        </div>
+                        <div class="ui-kpi"><div class="k-label">Cache hit</div>
+                          <div class="k-value" x-text="`${$store.openrouterUsageStore.fmtNum(($store.openrouterUsageStore.routing.tradeoffs?.current_cache_hit_rate || 0) * 100, 1)}% → ${$store.openrouterUsageStore.fmtNum(($store.openrouterUsageStore.routing.tradeoffs?.recommended_cache_hit_rate || 0) * 100, 1)}%`"></div>
+                          <div class="k-sub" x-text="`${($store.openrouterUsageStore.routing.tradeoffs?.cache_hit_change_pct >= 0 ? '+' : '')}${$store.openrouterUsageStore.fmtNum($store.openrouterUsageStore.routing.tradeoffs?.cache_hit_change_pct, 1)}%`"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="ui-actions">
+                      <button type="button" class="ui-btn" @click="$store.openrouterUsageStore.fetchRouting()">Refresh preview</button>
+                      <button type="button" class="ui-btn primary"
+                              x-show="$store.openrouterUsageStore.routing?.confidence !== 'low'"
+                              :disabled="$store.openrouterUsageStore.applying"
+                              @click="$store.openrouterUsageStore.requestApply()"
+                              x-text="$store.openrouterUsageStore.applying ? 'Applying…' : 'Apply recommendation'"></button>
+                    </div>
+                  </div>
+                </template>
               </div>
             </div>
-          </template>
 
-          <template x-if="$store.openrouterUsageStore.overview?.last_error">
-            <div class="or-warn" x-text="$store.openrouterUsageStore.overview.last_error"></div>
-          </template>
+            <!-- Alerts -->
+            <template x-for="alert in ($store.openrouterUsageStore.overview?.alerts || [])" :key="alert.message">
+              <div class="ui-banner warn" x-text="alert.message"></div>
+            </template>
+            <template x-if="$store.openrouterUsageStore.overview?.last_error">
+              <div class="ui-banner warn" x-text="$store.openrouterUsageStore.overview.last_error"></div>
+            </template>
+          </div>
+        </template>
+
+        <!-- ORI apply confirmation -->
+        <template x-if="$store.openrouterUsageStore.confirmApply">
+          <div class="ui-overlay" @click.self="$store.openrouterUsageStore.cancelApply()">
+            <div class="ui-dialog">
+              <h3>Apply routing defaults?</h3>
+              <p>
+                This PATCHes workspace
+                <strong x-text="$store.openrouterUsageStore.activeWorkspaceName"></strong>
+                with the recommended defaults:
+                <code x-text="$store.openrouterUsageStore.routing?.recommended?.default_text_model"></code>
+                (image: <code x-text="$store.openrouterUsageStore.routing?.recommended?.default_image_model || '—'"></code>),
+                provider sort
+                <code x-text="($store.openrouterUsageStore.routing?.recommended?.default_provider_sort || []).join(', ') || '—'"></code>.
+              </p>
+              <div class="row">
+                <button type="button" class="ui-btn" @click="$store.openrouterUsageStore.cancelApply()">Cancel</button>
+                <button type="button" class="ui-btn danger" @click="$store.openrouterUsageStore.applyRouting()">Apply</button>
+              </div>
+            </div>
+          </div>
         </template>
       </div>
     </template>
   </div>
 
   <style>
-    .or-header { display: flex; justify-content: space-between; gap: 12px; align-items: start; flex-wrap: wrap; margin-bottom: 16px; }
-    .or-toggle { display: flex; gap: 6px; flex-wrap: wrap; }
-    .btn.active { outline: 2px solid var(--color-primary, #6cf); }
-    .or-subline { opacity: 0.75; font-size: 0.8rem; }
-
-    .or-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); margin: 16px 0; }
-    .or-card { border: 1px solid var(--color-border, #333); border-radius: 12px; padding: 14px; background: color-mix(in srgb, var(--color-bg, #131313) 96%, var(--color-primary, #6cf)); }
-    .or-card-primary { background: color-mix(in srgb, var(--color-bg, #131313) 90%, var(--color-primary, #6cf)); border-color: color-mix(in srgb, var(--color-primary, #6cf) 50%, var(--color-border, #333)); }
-    .or-card-label { opacity: 0.7; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
-    .or-card-value { font-size: clamp(1.3rem, 4vw, 1.7rem); font-weight: 700; margin: 6px 0 4px; word-break: break-word; }
-    .or-card-sub { opacity: 0.75; font-size: 0.78rem; }
-
-    .or-section { margin-top: 22px; }
-    .or-section h3 { font-size: 0.95rem; font-weight: 700; margin: 0 0 12px; opacity: 0.9; }
-
-    .or-split { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
-
-    .or-bars { display: grid; gap: 10px; }
-    .or-bar-row { display: grid; grid-template-columns: minmax(100px, 140px) 1fr auto; gap: 10px; align-items: center; }
-    .or-bar-label { font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .or-bar-track { height: 12px; min-width: 0; background: color-mix(in srgb, var(--color-border) 40%, transparent); border-radius: 999px; overflow: hidden; }
-    .or-bar-fill { height: 100%; opacity: 0.9; min-width: 2px; border-radius: 999px; transition: width 0.35s ease; }
-    .or-bar-value { font-size: 0.78rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
-
-    .or-daily-bars { display: grid; gap: 10px; }
-    .or-daily-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; }
-    .or-daily-label { font-size: 0.75rem; opacity: 0.85; text-align: right; }
-    .or-daily-track { height: 16px; min-width: 0; background: color-mix(in srgb, var(--color-border) 40%, transparent); border-radius: 999px; overflow: hidden; position: relative; }
-    .or-daily-fill { height: 100%; background: var(--color-primary, #6cf); opacity: 0.85; min-width: 2px; border-radius: 999px; transition: width 0.35s ease; }
-    .or-daily-segment { height: 100%; position: absolute; top: 0; min-width: 2px; border-radius: 2px; transition: width 0.35s ease, left 0.35s ease; }
-    .or-daily-value { font-size: 0.78rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
-
-    .or-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; padding: 0 4px; }
-    .or-table { width: 100%; min-width: 480px; border-collapse: collapse; font-size: 0.82rem; }
-    .or-table th, .or-table td { border-bottom: 1px solid var(--color-border, #333); padding: 8px 6px; text-align: left; }
-    .or-table th { opacity: 0.75; font-weight: 600; }
-    .or-table tr:hover td { background: color-mix(in srgb, var(--color-border) 15%, transparent); }
-
-    .or-empty, .or-warn { margin-top: 12px; padding: 12px; border-radius: 10px; background: color-mix(in srgb, var(--color-border) 25%, transparent); font-size: 0.9rem; }
-    .or-warn { border-left: 3px solid var(--color-warning, #f7b267); }
-
-    .or-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; font-size: 0.74rem; }
-    .or-legend-item { display: inline-flex; align-items: center; gap: 4px; }
-    .or-dot { width: 10px; height: 10px; border-radius: 999px; }
-
-    @media (max-width: 720px) {
-      .or-header { flex-direction: column; align-items: stretch; }
-      .or-toggle { width: 100%; }
-      .or-toggle .btn { flex: 1; min-height: 44px; }
-      .or-bar-row { grid-template-columns: 1fr auto; gap: 4px; }
-      .or-bar-track { grid-column: 1 / -1; }
-      .or-bar-label { white-space: normal; }
-      .or-daily-row { grid-template-columns: 40px 1fr auto; }
-    }
+    .ws-select { min-height: 36px; font-size: 0.85rem; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-sm); background: var(--ui-surface); color: inherit; padding: 0 10px; max-width: 220px; }
+    .kpi-mono { font-weight: 800; font-size: 1rem; word-break: break-word; }
+    .sub { opacity: 0.75; font-size: 0.78rem; margin-top: 4px; }
   </style>
 </body>
 </html>
