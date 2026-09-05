@@ -4,19 +4,15 @@
 
 <button type="button"
         class="config-button kurultai-sidebar-btn"
-        title="Kurultai Memory"
+        :title="`Kurultai Memory — ${$store.kurultaiPeopleStore?.connectionPill.label || 'search'}`"
         @click="openModal('/plugins/kurultai_people/webui/search-modal.html')">
   <img src="/plugins/kurultai_people/docs/logo.webp" alt="" width="22" height="22" />
 </button>
 
 <style>
   .kurultai-sidebar-btn {
-    min-width: 44px;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
+    min-width: 44px; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center; padding: 4px;
   }
-  .kurultai-sidebar-btn img { border-radius: 4px; }
+  .kurultai-sidebar-btn img { border-radius: 5px; }
 </style>

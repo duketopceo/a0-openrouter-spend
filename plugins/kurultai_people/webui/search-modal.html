@@ -1,42 +1,140 @@
 <html>
 <head>
   <title>Search Kurultai</title>
+  <link rel="stylesheet" href="/plugins/kurultai_people/webui/ui-kit.css" />
   <script type="module" src="/plugins/kurultai_people/webui/kurultai-store.js"></script>
 </head>
 <body>
-  <div x-data>
+  <div x-data x-cloak>
     <template x-if="$store.kurultaiPeopleStore">
       <div x-init="$store.kurultaiPeopleStore.onOpen()" x-destroy="$store.kurultaiPeopleStore.cleanup()">
-        <div class="section-title">Search Kurultai</div>
-        <div class="search-row">
-          <input type="text" x-model="$store.kurultaiPeopleStore.query" placeholder="Who is… / search notes" @keydown.enter="$store.kurultaiPeopleStore.runSearch()" />
-          <button type="button" class="btn" @click="$store.kurultaiPeopleStore.runSearch()" :disabled="$store.kurultaiPeopleStore.searching">Search</button>
+
+        <div class="ui-hero">
+          <img src="/plugins/kurultai_people/docs/logo.webp" alt="" />
+          <div class="ui-hero-titles">
+            <div class="ui-hero-title">Search Kurultai</div>
+            <div class="ui-hero-sub">Recall people, notes, and knowledge from your Kurultai brain.</div>
+          </div>
         </div>
-        <template x-if="$store.kurultaiPeopleStore.hits.length">
-          <div class="results">
-            <template x-for="(hit, index) in $store.kurultaiPeopleStore.hits" :key="index">
-              <article class="hit">
-                <strong x-text="hit.title"></strong>
-                <div class="meta" x-text="`${hit.source} / ${hit.source_id}`"></div>
-                <p x-text="hit.snippet"></p>
-              </article>
-            </template>
+
+        <div class="ui-card" style="margin-top:12px">
+          <div class="search-row">
+            <input type="text" x-model="$store.kurultaiPeopleStore.query"
+                   placeholder="Who is… / search notes" autofocus
+                   @keydown.enter="$store.kurultaiPeopleStore.runSearch()" />
+            <button type="button" class="ui-btn primary" @click="$store.kurultaiPeopleStore.runSearch()"
+                    :disabled="$store.kurultaiPeopleStore.searching"
+                    x-text="$store.kurultaiPeopleStore.searching ? 'Searching…' : 'Search'"></button>
+          </div>
+          <div class="filter-row">
+            <input type="text" x-model="$store.kurultaiPeopleStore.scope" placeholder="Scope (optional)" />
+            <input type="text" x-model="$store.kurultaiPeopleStore.source" placeholder="Source (optional)" />
+          </div>
+        </div>
+
+        <!-- Recent searches -->
+        <template x-if="$store.kurultaiPeopleStore.recents.length && !$store.kurultaiPeopleStore.searched">
+          <div class="ui-card" style="margin-top:12px">
+            <h3>Recent <button type="button" class="ui-btn" style="float:right; min-height:24px; padding:0 10px; font-size:0.7rem" @click="$store.kurultaiPeopleStore.clearRecents()">clear</button></h3>
+            <div class="recents">
+              <template x-for="r in $store.kurultaiPeopleStore.recents" :key="r">
+                <button type="button" class="ui-chip recent" @click="$store.kurultaiPeopleStore.useRecent(r)" x-text="r"></button>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- Skeleton while searching -->
+        <template x-if="$store.kurultaiPeopleStore.searching">
+          <div class="results" style="margin-top:12px">
+            <template x-for="i in 3" :key="i"><div class="ui-skel" style="height:88px"></div></template>
+          </div>
+        </template>
+
+        <!-- Error -->
+        <template x-if="$store.kurultaiPeopleStore.error && !$store.kurultaiPeopleStore.searching">
+          <div class="ui-banner bad" x-text="$store.kurultaiPeopleStore.error"></div>
+        </template>
+
+        <!-- Empty state -->
+        <template x-if="$store.kurultaiPeopleStore.searched && !$store.kurultaiPeopleStore.searching && !$store.kurultaiPeopleStore.hits.length && !$store.kurultaiPeopleStore.error">
+          <div class="ui-empty">
+            <div class="big">No matches</div>
+            <div class="sub">Try a broader query, or drop the scope/source filters.</div>
+          </div>
+        </template>
+
+        <!-- Results -->
+        <template x-if="$store.kurultaiPeopleStore.hits.length && !$store.kurultaiPeopleStore.searching">
+          <div class="layout" style="margin-top:12px">
+            <div class="results">
+              <template x-for="(hit, index) in $store.kurultaiPeopleStore.hits" :key="hit.source_id || hit.title || index">
+                <article class="ui-card hit">
+                  <div class="hit-head">
+                    <strong x-text="hit.title"></strong>
+                    <span class="score" :title="`relevance ${$store.kurultaiPeopleStore.scorePct(hit.score)}%`">
+                      <i :style="{ width: $store.kurultaiPeopleStore.scorePct(hit.score) + '%' }"></i>
+                    </span>
+                  </div>
+                  <div class="hit-meta">
+                    <span class="ui-chip" x-text="hit.source || 'unknown'"></span>
+                    <span class="sid" x-text="hit.source_id"></span>
+                  </div>
+                  <p class="hit-snippet" x-text="hit.snippet"></p>
+                  <div class="hit-actions">
+                    <button type="button" class="ui-btn" @click="$store.kurultaiPeopleStore.copyCitation(hit)">Copy cite</button>
+                  </div>
+                </article>
+              </template>
+            </div>
+
+            <div class="who" x-show="$store.kurultaiPeopleStore.whoKnows.length">
+              <div class="ui-card">
+                <h3>Who knows</h3>
+                <template x-for="w in $store.kurultaiPeopleStore.whoKnows" :key="w.source">
+                  <div class="who-row">
+                    <span x-text="w.source"></span>
+                    <span class="ui-chip" x-show="w.count != null" x-text="w.count"></span>
+                  </div>
+                  <div class="who-topic" x-show="w.topic" x-text="w.topic"></div>
+                </template>
+              </div>
+            </div>
           </div>
         </template>
       </div>
     </template>
   </div>
+
   <style>
-    .search-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 12px 0; }
-    .search-row input { min-height: 44px; font-size: 16px; }
-    .search-row .btn { min-height: 44px; min-width: 44px; }
-    .results { display: grid; gap: 12px; max-height: min(60vh, 520px); overflow: auto; -webkit-overflow-scrolling: touch; }
-    .hit { border: 1px solid var(--color-border, #333); border-radius: 8px; padding: 12px; }
-    .hit p { word-break: break-word; line-height: 1.45; margin: 0; }
-    .meta { opacity: 0.75; font-size: 0.8rem; margin: 4px 0; word-break: break-all; }
+    .search-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    .search-row input { min-height: 46px; font-size: 16px; }
+    .search-row .ui-btn { min-height: 46px; min-width: 96px; justify-content: center; }
+    .filter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .filter-row input { min-height: 36px; font-size: 0.85rem; }
+    .recents { display: flex; gap: 6px; flex-wrap: wrap; }
+    .recent { cursor: pointer; padding: 6px 12px; }
+    .recent:hover { border-color: var(--ui-accent); color: var(--ui-accent); }
+    .layout { display: grid; grid-template-columns: 1fr 220px; gap: 12px; align-items: start; }
+    .results { display: grid; gap: 10px; max-height: min(62vh, 560px); overflow: auto; -webkit-overflow-scrolling: touch; }
+    .hit { display: grid; gap: 6px; }
+    .hit-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+    .hit-head strong { font-size: 0.9rem; }
+    .score { width: 64px; height: 6px; border-radius: 999px; background: var(--ui-surface-2); overflow: hidden; flex: none; }
+    .score i { display: block; height: 100%; background: var(--ui-good); border-radius: 999px; }
+    .hit-meta { display: flex; gap: 8px; align-items: center; min-width: 0; }
+    .hit-meta .sid { font-size: 0.7rem; opacity: 0.6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hit-snippet { font-size: 0.83rem; line-height: 1.5; margin: 0; word-break: break-word; }
+    .hit-actions { display: flex; justify-content: flex-end; }
+    .hit-actions .ui-btn { min-height: 30px; padding: 0 10px; font-size: 0.72rem; }
+    .who-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; padding: 6px 0; }
+    .who-topic { font-size: 0.72rem; opacity: 0.7; margin: -4px 0 6px; }
     @media (max-width: 720px) {
+      .layout { grid-template-columns: 1fr; }
+      .who { order: -1; }
       .search-row { grid-template-columns: 1fr; }
-      .search-row .btn { width: 100%; }
+      .search-row .ui-btn { width: 100%; }
+      .filter-row { grid-template-columns: 1fr; }
     }
   </style>
 </body>
