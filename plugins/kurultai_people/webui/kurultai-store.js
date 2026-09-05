@@ -105,6 +105,8 @@ export const store = createStore("kurultaiPeopleStore", {
     } catch (error) {
       if (seq !== this._searchSeq) return;
       this.error = error?.message || "Search failed";
+      this.hits = [];
+      this.whoKnows = [];
       toastFrontendError(this.error, "Kurultai People");
     } finally {
       if (seq === this._searchSeq) this.searching = false;

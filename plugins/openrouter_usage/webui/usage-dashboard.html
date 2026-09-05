@@ -1,5 +1,7 @@
 <html>
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OpenRouter Usage</title>
   <link rel="stylesheet" href="/plugins/openrouter_usage/webui/ui-kit.css" />
   <script type="module" src="/plugins/openrouter_usage/webui/usage-store.js"></script>
@@ -28,7 +30,7 @@
                 <option :value="ws.id" x-text="ws.name || ws.id"></option>
               </template>
             </select>
-            <button type="button" class="ui-btn" @click="$store.openrouterUsageStore.fetchOverview({ force: true })" :disabled="$store.openrouterUsageStore.loading">↻</button>
+            <button type="button" class="ui-btn" @click="$store.openrouterUsageStore.fetchOverview({ force: true })" :disabled="$store.openrouterUsageStore.loading" x-text="$store.openrouterUsageStore.loading ? '…' : 'Refresh'"></button>
             <div class="ui-seg">
               <button type="button" class="ui-btn" :class="{ on: $store.openrouterUsageStore.view === 'simple' }" @click="$store.openrouterUsageStore.setView('simple')">Simple</button>
               <button type="button" class="ui-btn" :class="{ on: $store.openrouterUsageStore.view === 'detailed' }" @click="$store.openrouterUsageStore.setView('detailed')">Detailed</button>

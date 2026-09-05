@@ -1,5 +1,7 @@
 <html>
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Search Kurultai</title>
   <link rel="stylesheet" href="/plugins/kurultai_people/webui/ui-kit.css" />
   <script type="module" src="/plugins/kurultai_people/webui/kurultai-store.js"></script>
@@ -57,7 +59,7 @@
         </template>
 
         <!-- Empty state -->
-        <template x-if="$store.kurultaiPeopleStore.searched && !$store.kurultaiPeopleStore.searching && !$store.kurultaiPeopleStore.hits.length && !$store.kurultaiPeopleStore.error">
+        <template x-if="$store.kurultaiPeopleStore.searched && !$store.kurultaiPeopleStore.searching && !$store.kurultaiPeopleStore.hits.length && !$store.kurultaiPeopleStore.whoKnows.length && !$store.kurultaiPeopleStore.error">
           <div class="ui-empty">
             <div class="big">No matches</div>
             <div class="sub">Try a broader query, or drop the scope/source filters.</div>
@@ -65,9 +67,12 @@
         </template>
 
         <!-- Results -->
-        <template x-if="$store.kurultaiPeopleStore.hits.length && !$store.kurultaiPeopleStore.searching">
+        <template x-if="($store.kurultaiPeopleStore.hits.length || $store.kurultaiPeopleStore.whoKnows.length) && !$store.kurultaiPeopleStore.searching">
           <div class="layout" style="margin-top:12px">
             <div class="results">
+              <template x-if="!$store.kurultaiPeopleStore.hits.length">
+                <div class="ui-empty"><div class="sub">No matching documents — see who might know on the right.</div></div>
+              </template>
               <template x-for="(hit, index) in $store.kurultaiPeopleStore.hits" :key="hit.source_id || hit.title || index">
                 <article class="ui-card hit">
                   <div class="hit-head">
