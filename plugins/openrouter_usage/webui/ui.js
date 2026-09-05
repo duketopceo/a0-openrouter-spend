@@ -1,5 +1,6 @@
 // ui.js — shared formatting helpers for this plugin's Alpine stores.
 export function fmtUsd(value) {
+  if (value === null || value === undefined || value === "") return "—";
   const n = Number(value);
   if (!Number.isFinite(n)) return "—";
   const a = Math.abs(n);
@@ -9,6 +10,7 @@ export function fmtUsd(value) {
 }
 
 export function fmtNum(value, digits = 0) {
+  if (value === null || value === undefined || value === "") return "—";
   const n = Number(value);
   if (!Number.isFinite(n)) return "—";
   return n.toLocaleString(undefined, {
@@ -18,6 +20,7 @@ export function fmtNum(value, digits = 0) {
 }
 
 export function fmtMs(value) {
+  if (value === null || value === undefined || value === "") return "—";
   const n = Number(value);
   if (!Number.isFinite(n)) return "—";
   return n >= 1000 ? `${(n / 1000).toFixed(2)}s` : `${Math.round(n)}ms`;
@@ -31,9 +34,10 @@ export function pctChange(cur, prev) {
 }
 
 export function barPct(value, max) {
+  const v = Number(value);
   const m = Number(max) || 0;
-  if (m <= 0) return "0%";
-  return `${Math.min(100, Math.max(2, (Number(value) / m) * 100))}%`;
+  if (!Number.isFinite(v) || v <= 0 || m <= 0) return "0%";
+  return `${Math.min(100, Math.max(2, (v / m) * 100))}%`;
 }
 
 export function maxOf(items, pick) {
