@@ -16,7 +16,12 @@ wrong.
 
 Agent Zero clones the **standalone** repo into `/a0/usr/plugins/<name>/` on
 install. A change made only to `plugins/<name>/` in this repo does not reach a
-single user. Make the change in `duketopceo/<name>`.
+single user.
+
+- For `openrouter_usage`, which has a standalone repo: make the change in
+  `duketopceo/openrouter_usage`.
+- For `kurultai_people`, which does **not** have one yet: this monorepo *is* the
+  source of truth, so make the change in `plugins/kurultai_people/`.
 
 ### `plugins/openrouter_usage/` here is a stale copy, and it has drifted
 
@@ -76,10 +81,21 @@ plugin root importable. This is the same constraint the standalone repo has,
 and the reason its `AGENTS.md` carries the same warning.
 
 `tests/__init__.py` is the other load-bearing file. It puts `tests/_site` on
-`sys.path`, and `tests/_site/usr/plugins/openrouter_usage/` mirrors the Agent
-Zero install layout. That is how tests import `usr.plugins.openrouter_usage.*`
-exactly the way the runtime does. If you add a module under the plugin, add its
-mirror under `tests/_site/` too or the import will not resolve.
+`sys.path`, and `tests/_site/usr/plugins/openrouter_usage/__init__.py` is a
+three-line shim:
+
+```python
+__path__ = [str(Path(__file__).resolve().parents[5])]
+```
+
+That points the `usr.plugins.openrouter_usage` package at the **real plugin
+root**, so `engine/`, `helpers/` and everything else resolve from the plugin
+tree itself. Verified by adding a new module under `engine/` with no mirror
+under `tests/_site/` and importing it successfully.
+
+**So do not mirror new modules into `tests/_site/`.** The shim exists precisely
+so you do not have to, and copying files there creates duplicates that drift
+from the originals. Add the module where it belongs, under the plugin.
 
 `tests/fixtures/*.json` are checked-in API responses for `engine/`. They are
 fixtures, not live data — do not "refresh" them from a real account.
@@ -105,7 +121,7 @@ plugins/<name>/
   tools/*.py             # agent-callable tools
   prompts/*.md           # tool system prompts
   webui/                 # styles, store, views
-  tests/_site/           # fake A0 install tree — do not delete
+  tests/_site/           # import shim pointing at the plugin root — do not delete
 index/<name>/            # Plugin Hub entry: index.yaml + thumbnail.webp
 ```
 
