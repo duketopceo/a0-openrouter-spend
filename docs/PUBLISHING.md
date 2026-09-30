@@ -1,6 +1,6 @@
 # Publishing to the Agent Zero Plugin Hub
 
-How to list **Kurultai Memory** and **OpenRouter Usage** in the community [Plugin Index](https://github.com/agent0ai/a0-plugins) so users can install from **Plugins → Browse** inside Agent Zero.
+How to list a plugin in the community [Plugin Index](https://github.com/agent0ai/a0-plugins) so users can install from **Plugins → Browse** inside Agent Zero.
 
 ---
 
@@ -8,40 +8,30 @@ How to list **Kurultai Memory** and **OpenRouter Usage** in the community [Plugi
 
 | What | Where |
 |------|--------|
-| **Dev monorepo** (this repo) | `plugins/kurultai_people/`, `plugins/openrouter_usage/` |
-| **Public plugin repo** (one per plugin) | GitHub repo root = plugin files |
+| **Plugin source of truth** | One repo per plugin — files at repo root |
+| **Index assets** (this repo) | `index/<name>/index.yaml` + `thumbnail.webp` |
 | **Index entry** | PR to `agent0ai/a0-plugins` adding `plugins/<name>/index.yaml` |
 
 The Index points at your GitHub repo. Agent Zero clones that repo into `/a0/usr/plugins/<name>/` on install.
 
+Current plugins and their repos:
+
+| Plugin | Repo | Hub |
+|--------|------|-----|
+| `argus` | `duketopceo/a0-plugin-argus` | pending |
+| `omaseal` | `duketopceo/a0-plugin-omaseal` | pending |
+| `kurultai_people` | `duketopceo/kurultai_people` | listed |
+| `openrouter_usage` | `duketopceo/openrouter_usage` | listed |
+
 ---
 
-## Step 1 — Split into two public repos
+## Step 1 — Plugin repo requirements
 
-Each plugin needs its **own repository** with files at the **root** (not under `plugins/`).
+Each plugin's **own repository** holds the plugin files at the **root**.
+Required there:
 
-### kurultai_people
-
-```bash
-mkdir kurultai_people && cd kurultai_people
-cp -r ../agent-zero-plugins/plugins/kurultai_people/* .
-git init && git add . && git commit -m "feat: initial kurultai_people plugin"
-gh repo create kurultai_people --public --source=. --remote=origin --push
-```
-
-### openrouter_usage
-
-```bash
-mkdir openrouter_usage && cd openrouter_usage
-cp -r ../agent-zero-plugins/plugins/openrouter_usage/* .
-git init && git add . && git commit -m "feat: initial openrouter_usage plugin"
-gh repo create openrouter_usage --public --source=. --remote=origin --push
-```
-
-### Required at repo root
-
-- `plugin.yaml` with `name:` matching folder name exactly (`kurultai_people`, `openrouter_usage`)
-- `LICENSE` (MIT — already included)
+- `plugin.yaml` with `name:` matching the index folder name exactly
+- `LICENSE` (MIT)
 - `README.md`
 
 Verify:
@@ -66,16 +56,15 @@ Fix any FAIL items before submitting.
 
 ## Step 3 — Prepare index assets
 
-Already in this monorepo under `index/`:
+Staged in this repo under `index/`:
 
 ```
-index/kurultai_people/index.yaml
-index/kurultai_people/thumbnail.webp   # square, < 20 KB
-index/openrouter_usage/index.yaml
-index/openrouter_usage/thumbnail.webp
+index/<name>/index.yaml
+index/<name>/thumbnail.webp   # square, < 20 KB
 ```
 
-**Before PR:** update `github:` URLs in each `index.yaml` to your standalone repo URLs.
+`scripts/validate_index.py` checks the staged tree (also runs in CI).
+**Before PR:** verify `github:` in each `index.yaml` points at the plugin's standalone repo.
 
 **Screenshots:** optional URLs in `index.yaml` (max 5). Use raw GitHub URLs to `docs/logo.webp` or real UI screenshots.
 
@@ -113,7 +102,7 @@ gh pr create --repo agent0ai/a0-plugins \
 - Tags: tools, search, memory, external"
 ```
 
-Repeat for `openrouter_usage` in a **separate PR**.
+Repeat for each plugin in a **separate PR**.
 
 ### CI rules (common failures)
 
@@ -139,15 +128,12 @@ Installed path: `/a0/usr/plugins/<name>/`
 
 ---
 
-## Monorepo vs store repos
+## Standalone repos are canonical
 
-| Approach | Use when |
-|----------|----------|
-| **This monorepo** | You develop both plugins together |
-| **Standalone repos** | Required for Plugin Hub listing |
-| **Sync script** (optional) | `rsync -a plugins/kurultai_people/ ../kurultai_people/` before release tag |
-
-Tag releases on standalone repos (`v1.1.0`) so Hub installs can pin versions.
+There is no dev monorepo. A vendored copy under `plugins/` was removed after
+drifting from the standalones in both directions — every copy is stale on
+arrival. Develop in the standalone repo, bump `version` in `plugin.yaml`, and
+tag releases there (`vX.Y.Z`) so Hub installs can pin versions.
 
 ---
 

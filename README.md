@@ -1,43 +1,29 @@
-# Agent Zero Plugins
+# Agent Zero Plugins — workspace
 
-<p align="center">
-  <img src="plugins/kurultai_people/docs/logo.webp" width="72" alt="Kurultai Memory" />
-  <img src="plugins/openrouter_usage/docs/logo.webp" width="72" alt="OpenRouter Usage" />
-</p>
+Hub-side workspace for [@duketopceo](https://github.com/duketopceo)'s
+[Agent Zero](https://github.com/agent0ai/agent-zero) plugins.
 
-Two independent plugins for [Agent Zero](https://github.com/agent0ai/agent-zero) v2.8+.
+**Plugin source of truth = the standalone repos.** Agent Zero clones a
+plugin's own repo into `/a0/usr/plugins/<name>/` on install, so each plugin
+lives at the root of its own repository — no plugin code is kept here.
 
-| Plugin | One-liner |
-|--------|-----------|
-| [**Kurultai Memory**](plugins/kurultai_people/) | Search, recall, and cite your [Kurultai](https://github.com/duketopceo/kurultai) brain |
-| [**OpenRouter Usage**](plugins/openrouter_usage/) | Org spend widget + dashboard via management key |
+| Plugin | Repo | Hub |
+|--------|------|-----|
+| **Argus PR Reviewer** | [duketopceo/a0-plugin-argus](https://github.com/duketopceo/a0-plugin-argus) | pending |
+| **OmaSeal Secrets** | [duketopceo/a0-plugin-omaseal](https://github.com/duketopceo/a0-plugin-omaseal) | pending |
+| **Kurultai Memory** | [duketopceo/kurultai_people](https://github.com/duketopceo/kurultai_people) | ✅ listed |
+| **OpenRouter Usage** | [duketopceo/openrouter_usage](https://github.com/duketopceo/openrouter_usage) | ✅ listed |
 
-## Quick install
+## What's here
 
-```bash
-cp -r plugins/kurultai_people /a0/usr/plugins/
-cp -r plugins/openrouter_usage /a0/usr/plugins/
-```
+- `index/<name>/` — staged Plugin Hub assets (`index.yaml` + `thumbnail.webp`)
+- `docs/PUBLISHING.md` — the publish procedure, current
+- `docs/plans/` — roadmap plans
+- `scripts/validate_index.py` — offline check of staged assets against Hub rules (runs in CI)
 
-Restart → **Plugins** → enable both.
+## Flow
 
-### Secrets (`/a0/usr/secrets.env`)
-
-```env
-KURULTAI_API_KEY=...              # optional
-OPENROUTER_MANAGEMENT_KEY=...     # required for usage widget
-```
-
-## Plugin Hub / Store
-
-Each plugin includes store assets and a full publish guide:
-
-- [Publishing to the Plugin Hub](docs/PUBLISHING.md)
-- `index/<name>/index.yaml` + `thumbnail.webp` (< 20 KB)
-- Welcome **feature cards** when not configured
-
-## Docs
-
-- [Kurultai Memory README](plugins/kurultai_people/README.md)
-- [OpenRouter Usage README](plugins/openrouter_usage/README.md)
-- [Publish to Plugin Hub](docs/PUBLISHING.md)
+1. Develop in the standalone repo (tests, version bump, tag).
+2. Stage/update `index/<name>/` here.
+3. PR `plugins/<name>/` to the fork `duketopceo/a0-plugins` → upstream
+   `agent0ai/a0-plugins`. One plugin per PR.
