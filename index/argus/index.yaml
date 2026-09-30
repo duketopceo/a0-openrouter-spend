@@ -1,0 +1,9 @@
+title: Argus PR Reviewer
+description: AI pull-request review and recorded-flow replay. The argus_review tool reviews diffs with a vision model; argus_flow replays recorded browser flows. BYOK through OpenRouter.
+github: https://github.com/duketopceo/a0-plugin-argus
+tags:
+  - tools
+  - automation
+  - github
+  - agents
+  - development
