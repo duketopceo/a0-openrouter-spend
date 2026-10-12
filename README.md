@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/wordmark-dark.svg">
+    <img alt="a0-openrouter-spend" src="assets/brand/wordmark.svg" height="56">
+  </picture>
+</p>
+
 # Agent Zero Plugins — workspace
 
 Hub-side workspace for [@duketopceo](https://github.com/duketopceo)'s
@@ -14,6 +21,10 @@ lives at the root of its own repository — no plugin code is kept here.
 | **Kurultai Memory** | [duketopceo/kurultai_people](https://github.com/duketopceo/kurultai_people) | ✅ listed |
 | **OpenRouter Usage** | [duketopceo/openrouter_usage](https://github.com/duketopceo/openrouter_usage) | ✅ listed |
 
+Despite the repo name, this is not the OpenRouter spend plugin: that lives in
+`openrouter_usage`. This repo only stages Plugin Hub cards. See
+[ROADMAP.md](ROADMAP.md).
+
 ## What's here
 
 - `index/<name>/` — staged Plugin Hub assets (`index.yaml` + `thumbnail.webp`)
@@ -27,3 +38,21 @@ lives at the root of its own repository — no plugin code is kept here.
 2. Stage/update `index/<name>/` here.
 3. PR `plugins/<name>/` to the fork `duketopceo/a0-plugins` → upstream
    `agent0ai/a0-plugins`. One plugin per PR.
+
+## Check locally
+
+```bash
+python -m pip install pyyaml
+python3 scripts/validate_index.py   # exit 0 = every staged card passes the structural rules
+```
+
+## Contributing
+
+Plugin behaviour changes belong in the standalone repo, never here (see
+[AGENTS.md](AGENTS.md)). Design direction and brand assets (a proposal,
+pending owner sign-off): [DESIGN.md](DESIGN.md), [assets/brand/](assets/brand/).
+The staged `argus` and `omaseal` thumbnails use the Patchbay marks.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
